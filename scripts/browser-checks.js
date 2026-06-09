@@ -100,6 +100,19 @@
     return names.every((n) => sel[n] === true) || `selected=${JSON.stringify(sel)}`;
   });
 
+  // ── Bars layout: the plot area must start below the page header ───────────
+  // Full-screen chart (#chart inset:0) + a top-anchored header → too small a
+  // grid.top runs the first bar under the title/tabs. grid.top is px from the
+  // chart (= viewport) top, directly comparable to the header's bottom edge.
+  check('bars: grid starts below the header (no overlap)', () => {
+    $('[data-view="bar"]').click();
+    const o = window.__dalioChart.getOption();
+    const gridTop = o.grid && o.grid[0] && o.grid[0].top;
+    const headerBottom = document.querySelector('header').getBoundingClientRect().bottom;
+    return (typeof gridTop === 'number' && gridTop >= headerBottom)
+      || `grid.top=${gridTop} headerBottom=${Math.round(headerBottom)}`;
+  });
+
   // ── Keyboard shortcuts: number-row keys 1–4 select the four views ─────────
   // Must work by physical key position (e.code), not the character produced —
   // on a French AZERTY layout the top row yields "& é " '" unless Shift is held,
