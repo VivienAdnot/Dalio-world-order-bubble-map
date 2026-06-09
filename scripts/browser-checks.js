@@ -64,6 +64,18 @@
     return activeView() === 'radar' || `active tab was "${activeView()}"`;
   });
 
+  // ── Radar layout: legend must sit at the bottom, not the top ──────────────
+  // The chart fills the screen (#chart is inset:0) and the page header is pinned
+  // to the top — a top-anchored legend overlaps it. Legend is canvas-rendered so
+  // we assert via the exposed chart instance (window.__dalioChart).
+  check('radar legend is anchored to the bottom (clears the header)', () => {
+    $('[data-view="radar"]').click();
+    const o = window.__dalioChart && window.__dalioChart.getOption();
+    const lg = o && o.legend && o.legend[0];
+    if (!lg) return 'no legend on the radar option';
+    return (lg.bottom != null && lg.top == null) || `legend top=${lg.top} bottom=${lg.bottom}`;
+  });
+
   // ── Keyboard shortcuts: number-row keys 1–4 select the four views ─────────
   // Must work by physical key position (e.code), not the character produced —
   // on a French AZERTY layout the top row yields "& é " '" unless Shift is held,
