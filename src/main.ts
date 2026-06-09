@@ -24,6 +24,10 @@ blocks.forEach((b, i) => {
 
 const chart = echarts.init(document.getElementById('chart'), undefined, { renderer: 'canvas' });
 
+// Test seam: the ECharts canvas has no DOM nodes to assert against, so expose the
+// instance for the browser checks (scripts/browser-checks.js). Harmless in prod.
+(window as unknown as { __dalioChart?: echarts.ECharts }).__dalioChart = chart;
+
 const builders: Record<View, () => echarts.EChartsOption> = {
   map: () => buildMapOption(blocks),
   radar: () => buildRadarOption(blocks),

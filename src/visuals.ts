@@ -138,10 +138,15 @@ export function buildRadarOption(blocks: BlockScore[]): EChartsOption {
     legend: {
       data: blocks.map((b) => `${b.label} (${b.id})`),
       textStyle: { color: '#b6bdc8' },
-      top: 8,
+      // Anchor to the bottom so the legend can't collide with the page header
+      // (which is absolutely positioned at the top of the full-screen chart).
+      bottom: 12,
       type: 'scroll',
     },
     radar: {
+      // Match the profiles radar: pushed down + sized so the top vertex clears the header.
+      center: ['50%', '54%'],
+      radius: '62%',
       indicator: FACTOR_ORDER.map((f) => ({ name: FACTOR_LABELS[f], max: 100 })),
       axisName: { color: '#8a929e', fontSize: 11 },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,.08)' } },
