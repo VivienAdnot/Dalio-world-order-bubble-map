@@ -46,8 +46,8 @@ export const SLEEVES: Record<string, Sleeve> = {
 //   speculation / geoRisk    0..1, analyst judgement (geoRisk for Gulf/EMEA raised,
 //                            Middle East conflict, WEO Apr 2026)
 //
-// Subjective inputs: the lin() bounds (gauges.ts), speculation, geoRisk,
-// and the sign of Sentiment (positive momentum, not inverted). The rest is mechanical.
+// Subjective inputs: the lin() bounds (gauges.ts), speculation, geoRisk, and the Euphoria
+// blend (momentum is INVERTED as froth, folded with speculation). The rest is mechanical.
 //
 // Big Debt Cycle indicators — SOURCED, representative country per sleeve
 // (PNAS=US, PCEU=euro area, PTPXH=Japan, PAEJ=China, PINR=India, PALAT=Brazil,

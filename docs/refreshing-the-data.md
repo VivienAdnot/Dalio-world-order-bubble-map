@@ -2,7 +2,7 @@
 
 Recipe for refreshing the data: **where it lives**, **how each metric was obtained**, and
 **how it redeploys**. The app places each sleeve on Dalio's **Big Debt Cycle** (a 1–5 stage)
-and keeps a 6-factor **attractiveness composite** alongside; the methodology, current values
+and keeps a 5-factor **attractiveness composite** alongside; the methodology, current values
 and exact formulas live in [`CLAUDE.md`](../CLAUDE.md).
 
 There are **two kinds of data**, both in `src/data.ts`:
@@ -120,5 +120,5 @@ Only commit `src/data.ts` — never the built bundle.
 6. Record the refresh date (commit message + optionally a changelog line here).
 
 > Guardrail: refresh the **inputs** (`RAW`), not the machinery. Changing the weights, the
-> `lin()` bounds, or the sign of Sentiment is a **model decision** — pre-register it
+> `lin()` bounds, or the Euphoria blend (incl. the momentum inversion) is a **model decision** — pre-register it
 > separately.

@@ -4,17 +4,15 @@ export type Factor =
   | 'valuations'
   | 'debt'
   | 'growth'
-  | 'leverage'
-  | 'geo'
-  | 'sentiment';
+  | 'euphoria'
+  | 'geo';
 
 export const FACTOR_ORDER: Factor[] = [
   'valuations',
   'debt',
   'growth',
-  'leverage',
+  'euphoria',
   'geo',
-  'sentiment',
 ];
 
 /** RAW inputs, hand-edited in data.ts (RAW). */

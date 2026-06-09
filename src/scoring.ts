@@ -2,14 +2,14 @@ import { RAW, SLEEVES, STAGES } from './data';
 import { GAUGES, cycleStressSignal } from './gauges';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
-// Composite = 0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.10·Leverage + 0.10·Geo + 0.05·Sentiment
+// Composite = 0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.15·Euphoria + 0.10·Geo
+// (Euphoria 0.15 = the merged old Leverage 0.10 + Sentiment 0.05.)
 export const WEIGHTS: Record<Factor, number> = {
   valuations: 0.3,
   debt: 0.25,
   growth: 0.2,
-  leverage: 0.1,
+  euphoria: 0.15,
   geo: 0.1,
-  sentiment: 0.05,
 };
 
 /** RAW -> per-factor 0..100 scores -> weighted composite, for each sleeve. */
