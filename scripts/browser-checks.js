@@ -76,6 +76,30 @@
     return (lg.bottom != null && lg.top == null) || `legend top=${lg.top} bottom=${lg.bottom}`;
   });
 
+  // ── Radar legend isolate: clicking a sleeve shows only that one ───────────
+  const radarNames = () =>
+    window.__dalioChart.getOption().legend[0].data.map((d) => (typeof d === 'string' ? d : d.name));
+
+  check('radar: clicking a legend item isolates it (only that sleeve selected)', () => {
+    $('[data-view="radar"]').click(); // fresh render → all selected
+    const c = window.__dalioChart;
+    const names = radarNames();
+    const target = names[0];
+    c.dispatchAction({ type: 'legendToggleSelect', name: target });
+    const sel = c.getOption().legend[0].selected || {};
+    return names.every((n) => sel[n] === (n === target)) || `selected=${JSON.stringify(sel)}`;
+  });
+
+  check('radar: clicking the isolated item again restores all sleeves', () => {
+    $('[data-view="radar"]').click(); // fresh render → all selected
+    const c = window.__dalioChart;
+    const names = radarNames();
+    c.dispatchAction({ type: 'legendToggleSelect', name: names[0] }); // isolate
+    c.dispatchAction({ type: 'legendToggleSelect', name: names[0] }); // restore
+    const sel = c.getOption().legend[0].selected || {};
+    return names.every((n) => sel[n] === true) || `selected=${JSON.stringify(sel)}`;
+  });
+
   // ── Keyboard shortcuts: number-row keys 1–4 select the four views ─────────
   // Must work by physical key position (e.code), not the character produced —
   // on a French AZERTY layout the top row yields "& é " '" unless Shift is held,
