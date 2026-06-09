@@ -3,8 +3,16 @@ import { CYCLE_STAGES } from './data';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
 const STAGE_BY_NUM = new Map(CYCLE_STAGES.map((s) => [s.stage, s]));
-export const stageColor = (stage: number): string =>
-  (STAGE_BY_NUM.get(stage) ?? CYCLE_STAGES[CYCLE_STAGES.length - 1]).color;
+const lastStage = CYCLE_STAGES[CYCLE_STAGES.length - 1];
+export const stageColor = (stage: number): string => (STAGE_BY_NUM.get(stage) ?? lastStage).color;
+export const stageName = (stage: number): string => (STAGE_BY_NUM.get(stage) ?? lastStage).name;
+
+// Piecewise legend for stage-coloured views (map): one piece per stage.
+const STAGE_PIECES = CYCLE_STAGES.map((s) => ({
+  value: s.stage,
+  color: s.color,
+  label: `${s.stage} · ${s.name}`,
+}));
 
 // ── Colour bands ───────────────────────────────────────────────────────────
 // 🟢 70–100 attractive · 🟡 40–69 moderate risk · 🔴 0–39 high risk
@@ -119,13 +127,6 @@ export function registerWorldMap(
   echarts.registerMap(name, geojson);
 }
 
-const VISUAL_MAP_PIECES = BANDS.map((b) => ({
-  min: b.min,
-  max: b.max,
-  color: b.color,
-  label: `${b.min}–${b.max}  ${b.label.toLowerCase()}`,
-}));
-
 export function buildMapOption(
   blocks: BlockScore[],
   opts: { mapName?: string } = {},
@@ -133,10 +134,12 @@ export function buildMapOption(
   const byCountry = new Map<string, BlockScore>();
   for (const b of blocks) for (const iso3 of b.members) byCountry.set(iso3, b);
 
+  // value = Big Debt Cycle stage (drives the choropleth colour); composite kept
+  // in the payload for the tooltip (the parallel attractiveness lens).
   const data = [...byCountry.entries()].map(([iso3, b]) => ({
     name: iso3,
-    value: b.composite,
-    _b: { id: b.id, label: b.label, index: b.index, factors: b.factors },
+    value: b.stage,
+    _b: { id: b.id, label: b.label, index: b.index, factors: b.factors, composite: b.composite, stage: b.stage },
   }));
 
   return {
@@ -153,16 +156,16 @@ export function buildMapOption(
         const b = p.data?._b;
         if (!b)
           return `<b>${p.name}</b><br/><span style="color:#838c99">Outside PEA universe</span>`;
-        const c = colorOf(p.value);
+        const c = stageColor(b.stage);
         const rows = FACTOR_ORDER.map(
           (f) =>
             `<div style="display:flex;justify-content:space-between;gap:16px;font-size:11px;color:#838c99">
              <span>${FACTOR_LABELS[f]}</span><span style="color:#e9ecf1">${b.factors[f]}</span></div>`,
         ).join('');
-        return `<div style="min-width:200px">
+        return `<div style="min-width:210px">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px">
-            <b style="font-size:15px">${b.label}</b><span style="color:${c};font-size:20px;font-weight:600">${p.value}</span></div>
-          <div style="font-size:10.5px;color:#5a626e;margin-bottom:8px">${b.id} · ${b.index ?? ''}</div>${rows}</div>`;
+            <b style="font-size:15px">${b.label}</b><span style="color:${c};font-size:13px;font-weight:700">Stage ${b.stage} · ${stageName(b.stage)}</span></div>
+          <div style="font-size:10.5px;color:#5a626e;margin-bottom:8px">${b.id} · ${b.index ?? ''} · composite ${b.composite}</div>${rows}</div>`;
       },
     },
     visualMap: {
@@ -174,7 +177,7 @@ export function buildMapOption(
       itemHeight: 13,
       itemGap: 8,
       textStyle: { color: '#b6bdc8', fontSize: 11 },
-      pieces: VISUAL_MAP_PIECES,
+      pieces: STAGE_PIECES,
       outOfRange: { color: NO_DATA },
       seriesIndex: 0,
     },
@@ -266,11 +269,21 @@ export function buildBarOption(blocks: BlockScore[]): EChartsOption {
       {
         type: 'bar',
         barWidth: '58%',
+        // Bar length = attractiveness composite; colour = Big Debt Cycle stage.
         data: sorted.map((b) => ({
           value: b.composite,
-          itemStyle: { color: colorOf(b.composite), borderRadius: [0, 4, 4, 0] },
+          stage: b.stage,
+          itemStyle: { color: stageColor(b.stage), borderRadius: [0, 4, 4, 0] },
         })),
-        label: { show: true, position: 'right', color: '#e9ecf1', formatter: '{c}', fontWeight: 600 },
+        label: {
+          show: true,
+          position: 'right',
+          formatter: (p: any) => `{v|${p.value}}  {s|stage ${p.data.stage}}`,
+          rich: {
+            v: { color: '#e9ecf1', fontWeight: 600, fontSize: 13 },
+            s: { color: '#8a929e', fontSize: 11, fontFamily: 'monospace' },
+          },
+        },
         markLine: {
           symbol: 'none',
           silent: true,
@@ -286,9 +299,6 @@ export function buildBarOption(blocks: BlockScore[]): EChartsOption {
 // ── Profile radar (selected sleeve vs the average of the 7) ─────────────────
 const PROFILE_AXIS_COLORS = ['#5b8def', '#e98a3a', '#3fb97a', '#9b6ef3', '#e1495b', '#27c4c4'];
 
-const bandLabel = (s: number): string =>
-  s >= 70 ? 'attractive' : s >= 40 ? 'moderate risk' : 'high risk';
-
 export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): EChartsOption {
   const block = blocks[Math.max(0, Math.min(selected, blocks.length - 1))];
   const c = colorOf(block.composite);
@@ -300,13 +310,16 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
   // we go through an intermediate const to avoid the excess-property check.
   const option = {
     backgroundColor: 'transparent',
+    // Headline = Big Debt Cycle stage badge; composite kept alongside in the subtext.
+    // top:188 clears the page header — Profiles also shows the sleeve-chip row,
+    // so its header is taller than the other views.
     title: {
       right: '5%',
-      top: '5%',
+      top: 188,
       textAlign: 'right',
-      text: String(block.composite),
-      subtext: 'composite · ' + bandLabel(block.composite),
-      textStyle: { color: c, fontSize: 30, fontWeight: 600, fontFamily: 'monospace' },
+      text: `Stage ${block.stage} · ${stageName(block.stage)}`,
+      subtext: `composite ${block.composite}`,
+      textStyle: { color: stageColor(block.stage), fontSize: 22, fontWeight: 700, fontFamily: 'monospace' },
       subtextStyle: { color: '#838c99', fontSize: 11, fontFamily: 'monospace' },
     },
     legend: {

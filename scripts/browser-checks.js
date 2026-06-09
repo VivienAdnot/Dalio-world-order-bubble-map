@@ -122,6 +122,33 @@
       || `grid.top=${gridTop} headerBottom=${Math.round(headerBottom)}`;
   });
 
+  // ── Stage-coloured views: map / bars / profiles reflect the cycle stage ───
+  check('map: choropleth legend has the 5 Big-Cycle stages', () => {
+    $('[data-view="map"]').click();
+    const vm = window.__dalioChart.getOption().visualMap;
+    const pieces = vm && vm[0] && vm[0].pieces && vm[0].pieces.length;
+    return pieces === 5 || `visualMap pieces=${pieces}`;
+  });
+
+  check('bars: every bar carries a stage 1–5 and a colour', () => {
+    $('[data-view="bar"]').click();
+    const d = window.__dalioChart.getOption().series[0].data;
+    const ok = d.length === 7
+      && d.every((x) => x.stage >= 1 && x.stage <= 5 && x.itemStyle && x.itemStyle.color);
+    return ok || `stages=${JSON.stringify(d.map((x) => x.stage))}`;
+  });
+
+  check('profiles: stage badge shows and clears the (taller) header', () => {
+    $('[data-view="profiles"]').click();
+    const t = window.__dalioChart.getOption().title;
+    const title = t && t[0];
+    const text = (title && title.text) || '';
+    const headerBottom = document.querySelector('header').getBoundingClientRect().bottom;
+    if (!/Stage \d/.test(text)) return `title="${text}"`;
+    return (typeof title.top === 'number' && title.top >= headerBottom)
+      || `title.top=${title.top} headerBottom=${Math.round(headerBottom)}`;
+  });
+
   // ── Keyboard shortcuts: number-row keys 1–5 select the five views ─────────
   // Must work by physical key position (e.code), not the character produced —
   // on a French AZERTY layout the top row yields "& é " ' (" unless Shift is held,
