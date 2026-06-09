@@ -1,8 +1,11 @@
-# Dalio-Style Bubble Gauge — PEA Sleeves
+# Dalio — the Big Debt Cycle — PEA Sleeves
 
-Mini web app that scores **7 geographic Amundi PEA ETF sleeves** on **6 factors**,
-*Dalio Bubble Gauge* style (**100 = attractive / low bubble risk**), then ranks, colours
-and visualises them (choropleth map, radars, bars). Pure front-end, no backend, no API key.
+Mini web app that places **7 geographic Amundi PEA ETF sleeves** on **Ray Dalio's Big Debt
+Cycle** (*How Countries Go Broke: The Big Cycle*) — a 1–5 severity stage per sleeve
+(1 Sound Money → 5 Going Broke). It keeps a **6-factor attractiveness composite** (0–100,
+*100 = attractive / low bubble risk*) **alongside** the stage as a second lens. Views:
+a Cycle stage-track, choropleth map, radars, bars, per-sleeve profiles. Pure front-end,
+no backend, no API key.
 
 Live app: https://vivienadnot.github.io/Dalio-world-order-bubble-map/
 
@@ -38,36 +41,46 @@ npm run preview
 
 ```
 data.ts      SLEEVES (country->sleeve) + RAW (raw metrics/sleeve)
+             + STAGES (per-sleeve cycle stage, editorial) + CYCLE_STAGES (the 5 stages)
    |
 gauges.ts    lin() + 6 scoring functions (raw -> 0..100) ; GAUGES map
    |
-scoring.ts   WEIGHTS ; buildBlockScores() -> BlockScore[] ; rankBlocks()
+scoring.ts   WEIGHTS ; buildBlockScores() -> BlockScore[] (+ stage/stageNote) ; rankBlocks()
    |
-visuals.ts   pure EChartsOption builders (no state) + colours/labels
+visuals.ts   pure EChartsOption builders (no state) + colours/labels + stageColor/stageName
    |
-main.ts      ECharts init, 4 tabs, hash routing, sleeve selector
+main.ts      ECharts init, 5 tabs, hash routing, sleeve selector
 ```
 
 - `types.ts` — shared contract (`Factor`, `FACTOR_ORDER`, `BlockMetrics`, `Sleeve`, `BlockScore`).
+  `BlockScore` carries the composite **and** `stage` (1–5) + `stageNote`.
 - `world.geo.json` — world geometry, `id` = ISO3 (source johan/world.geo.json).
   HKG & SGP absent (too small, no map impact).
 - Single `#chart` canvas; each tab recomputes the ECharts option and calls `setOption`.
 
 ### `visuals.ts` surface
 
-- `BANDS` → green 70–100, yellow 40–69, red 0–39 ; `colorOf(score)`, `FACTOR_LABELS`.
+- `BANDS` → green 70–100, yellow 40–69, red 0–39 ; `colorOf(score)` (used for the composite,
+  e.g. the sleeve chips), `FACTOR_LABELS`.
+- `stageColor(stage)` / `stageName(stage)` → the 5-stage green→red ramp (from `CYCLE_STAGES`).
 - `registerWorldMap(echarts, geojson)` (copies `feature.id` → `properties.iso3`, match by ISO3).
-- `buildMapOption`, `buildRadarOption` (7 sleeves overlaid), `buildBarOption`,
-  `buildProfileRadarOption(blocks, selected)` (large radar: selected sleeve filled
-  vs the average of the 7 dashed, coloured axis labels, composite badge).
+- `buildCycleOption` (the stage track: 7 sleeves placed across the 5 stages),
+  `buildMapOption` (choropleth coloured **by stage**, 5-piece legend; composite in tooltip),
+  `buildRadarOption` (7 sleeves overlaid; legend click isolates one sleeve),
+  `buildBarOption` (length = composite, colour = stage, labelled `composite · stage N`),
+  `buildProfileRadarOption(blocks, selected)` (large radar: selected sleeve filled vs the
+  average of the 7 dashed; headline = stage badge, composite in subtext).
 
 ### Tabs + routing (`main.ts`)
 
-- Views: `map` / `radar` / `bar` / `profiles` (buttons `.tab[data-view]`).
+- Views: `cycle` (default) / `map` / `radar` / `bar` / `profiles` (buttons `.tab[data-view]`).
 - **URL anchors** (read on load and on `hashchange`):
-  `#map`, `#radar`, `#bars`(or `#bar`)→bar, `#profiles`(or `#profile`).
+  `#cycle`, `#map`, `#radar`, `#bars`(or `#bar`)→bar, `#profiles`(or `#profile`).
 - `#profiles-<ticker>` opens Profiles on a specific sleeve (e.g. `#profiles-plem`, lowercase ticker).
 - Clicking a tab writes the anchor; choosing a sleeve writes `#profiles-<id>` via `replaceState`.
+- **Keyboard**: number-row keys **1–5** select Cycle/Map/Radar/Bars/Profiles. Keyed off
+  physical position (`e.code` = `Digit1`–`Digit5`) so it works on any layout (incl. AZERTY)
+  without Shift.
 
 ## Universe: 7 sleeves (1 Amundi PEA ETF = 1 block)
 
@@ -84,6 +97,29 @@ main.ts      ECharts init, 4 tabs, hash routing, sleeve selector
 - **India** (PINR) split out of PAEJ; **China** stays in PAEJ (no China sleeve).
   To break China out: create `PASI { members: ['CHN'] }` and remove `'CHN'` from PAEJ.
 - Broad EM (PAEEM/PEMS) deliberately **not** used (overlaps the 3 regional EM sleeves).
+
+## Big Debt Cycle (stage — the editorial lens)
+
+Reframed per Ray Dalio, *How Countries Go Broke: The Big Cycle*. Each sleeve carries a
+**stage 1–5** (a severity gauge), kept **alongside** the attractiveness composite below:
+
+| Stage | Name | Meaning |
+|---|---|---|
+| 1 | Sound Money | Low debt, hard money, productivity-led growth |
+| 2 | Debt Bubble | Cheap money; debt & investment outrun the incomes that service them |
+| 3 | The Top | The bubble pops — debt, credit, markets and the economy contract |
+| 4 | Deleveraging | Painful workout to bring debt back in line with income |
+| 5 | Going Broke | Crisis climax: money-printing, devaluation, internal & external conflict |
+
+The cycle is a **loop** — stage 5's crisis eventually recedes and resets to stage 1.
+
+Stages are **hand-assigned and editorial** (NOT derived from `RAW`), set in `data.ts`:
+`STAGES` = per-sleeve `{ stage, note }`; `CYCLE_STAGES` = the 5 stage definitions + colours
+(green→red). Edit `STAGES` to re-stage a sleeve. The stage drives the **Cycle** track, the
+**Map/Bars** colours and the **Profiles** badge; the composite remains a parallel lens.
+
+Current assignment: **India 2** · **Asia-Pac 3** · **Japan 4** · **LatAm 4** ·
+**USA / Europe / EM-EMEA 5** (Sound Money currently empty — no major market is pristine).
 
 ## Method: 6 factors (exact formulas)
 
@@ -130,17 +166,20 @@ the Middle East conflict, WEO Apr 2026). The 4 subjective inputs = the `lin()` b
 
 ## Current ranking (computed, mid-2026)
 
-| Rank | Ticker | Composite | Colour |
+| Rank | Ticker | Composite | Big Debt Cycle stage |
 |---|---|---|---|
-| 1 | PLEM | 69 | 🟡 |
-| 2 | PALAT | 68 | 🟡 |
-| 3 | PAEJ | 65 | 🟡 |
-| 4 | PCEU | 57 | 🟡 |
-| 5 | PINR | 56 | 🟡 |
-| 6 | PTPXH | 44 | 🟡 |
-| 7 | PNAS | 36 | 🔴 |
+| 1 | PLEM | 69 | 5 · Going Broke |
+| 2 | PALAT | 68 | 4 · Deleveraging |
+| 3 | PAEJ | 65 | 3 · The Top |
+| 4 | PCEU | 57 | 5 · Going Broke |
+| 5 | PINR | 56 | 2 · Debt Bubble |
+| 6 | PTPXH | 44 | 4 · Deleveraging |
+| 7 | PNAS | 36 | 5 · Going Broke |
 
-(No sleeve ≥70 after moving Sentiment to positive-momentum; PLEM 70→69.)
+Ranked by composite (high = attractive). Note the two lenses can diverge: e.g. **PNAS/USA**
+ranks last on the composite *and* sits at stage 5; **PLEM/EM-EMEA** tops the composite yet is
+stage 5 (cheap, but late-cycle conflict). (No sleeve ≥70 after moving Sentiment to
+positive-momentum; PLEM 70→69.)
 
 ## TODO / ideas
 
