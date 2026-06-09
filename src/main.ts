@@ -37,10 +37,27 @@ const builders: Record<View, () => echarts.EChartsOption> = {
 
 let view: View = 'map';
 
+// Name of the sleeve currently isolated on the radar legend (null = show all).
+let radarSolo: string | null = null;
+
 function render(): void {
   chart.clear();
   chart.setOption(builders[view]());
+  radarSolo = null; // a fresh render shows every series
 }
+
+// Radar: clicking a legend item isolates that sleeve (only it stays selected);
+// clicking the already-isolated item restores all. Scoped to the radar view —
+// the profiles legend keeps ECharts' default toggle.
+chart.on('legendselectchanged', (params: any) => {
+  if (view !== 'radar') return;
+  radarSolo = radarSolo === params.name ? null : params.name;
+  const selected: Record<string, boolean> = {};
+  Object.keys(params.selected).forEach((name) => {
+    selected[name] = radarSolo == null ? true : name === radarSolo;
+  });
+  chart.setOption({ legend: { selected } });
+});
 
 // ── Sleeve selector (chips, visible on the Profiles tab) ────────────────────
 const sleeveSel = document.getElementById('sleeveSel') as HTMLElement;
