@@ -63,20 +63,26 @@ export function buildCycleOption(blocks: BlockScore[]): EChartsOption {
     const group = byStage.get(b.stage)!;
     // Centre each stage's stack vertically; tight spacing regardless of height.
     const y = group.indexOf(b) - (group.length - 1) / 2;
+    const diverges = b.stageSignal !== b.stage;
     return {
       value: [b.stage - 1, y],
       name: b.label,
       stageNote: b.stageNote,
       stageNum: b.stage,
+      stageSignal: b.stageSignal,
+      m: b.metrics,
       itemStyle: { color: stageColor(b.stage) },
       label: {
         show: true,
         position: 'top' as const,
         distance: 10,
-        formatter: `{name|${short(b.label)}}\n{score|composite ${b.composite}}`,
+        formatter:
+          `{name|${short(b.label)}}\n{score|composite ${b.composite}}`
+          + (diverges ? `\n{sig|signal → stage ${b.stageSignal}}` : ''),
         rich: {
           name: { color: '#e9ecf1', fontSize: 13, fontWeight: 600, lineHeight: 16 },
           score: { color: '#8a929e', fontSize: 10.5, fontFamily: 'monospace', lineHeight: 13 },
+          sig: { color: '#6f7888', fontSize: 10, fontFamily: 'monospace', lineHeight: 13 },
         },
       },
     };
@@ -92,9 +98,30 @@ export function buildCycleOption(blocks: BlockScore[]): EChartsOption {
       borderWidth: 1,
       textStyle: { color: '#e9ecf1' },
       extraCssText: 'max-width:340px;white-space:normal;border-radius:13px',
-      formatter: (p: any) =>
-        `<b>${p.name}</b> · Stage ${p.data.stageNum}<br/>` +
-        `<span style="color:#8a929e">${p.data.stageNote}</span>`,
+      formatter: (p: any) => {
+        const m = p.data.m;
+        const sig = p.data.stageSignal;
+        const ed = p.data.stageNum;
+        const indicators = [
+          ['Govt debt', `${m.debtToGDP}% GDP`],
+          ['Debt service', `${m.debtServicePct}% of revenue`],
+          ['CB balance sheet', `${m.cbAssetsPct}% GDP`],
+          ['Private debt', `${m.privateDebtPct}% GDP`],
+          ['Real policy rate', `${m.realRate}%`],
+          ['Internal conflict', `${Math.round(m.internalConflict * 100)}/100`],
+          ['External geo-risk', `${Math.round(m.geoRisk * 100)}/100`],
+        ]
+          .map(
+            ([k, v]) =>
+              `<div style="display:flex;justify-content:space-between;gap:16px;font-size:11px;color:#838c99"><span>${k}</span><span style="color:#e9ecf1">${v}</span></div>`,
+          )
+          .join('');
+        return (
+          `<div style="min-width:230px"><b style="font-size:14px">${p.name}</b> · Stage ${ed}` +
+          `<div style="font-size:10.5px;color:#5a626e;margin-bottom:8px">data signal → stage ${sig}${sig !== ed ? ' (diverges)' : ''}</div>` +
+          `${indicators}<div style="font-size:10.5px;color:#8a929e;margin-top:8px;white-space:normal">${p.data.stageNote}</div></div>`
+        );
+      },
     },
     xAxis: {
       type: 'category',
@@ -318,7 +345,7 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
       top: 188,
       textAlign: 'right',
       text: `Stage ${block.stage} · ${stageName(block.stage)}`,
-      subtext: `composite ${block.composite}`,
+      subtext: `composite ${block.composite}  ·  data signal: stage ${block.stageSignal}`,
       textStyle: { color: stageColor(block.stage), fontSize: 22, fontWeight: 700, fontFamily: 'monospace' },
       subtextStyle: { color: '#838c99', fontSize: 11, fontFamily: 'monospace' },
     },

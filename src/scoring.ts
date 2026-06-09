@@ -1,5 +1,5 @@
 import { RAW, SLEEVES, STAGES } from './data';
-import { GAUGES } from './gauges';
+import { GAUGES, cycleStressSignal } from './gauges';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
 // Composite = 0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.10·Leverage + 0.10·Geo + 0.05·Sentiment
@@ -28,10 +28,12 @@ export function buildBlockScores(): BlockScore[] {
       label: sleeve.label,
       index: sleeve.index,
       members: sleeve.members,
+      metrics,
       factors,
       composite,
       stage: stage?.stage ?? 1,
       stageNote: stage?.note ?? '',
+      stageSignal: cycleStressSignal(metrics),
     };
   });
 }

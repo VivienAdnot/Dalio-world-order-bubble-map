@@ -35,6 +35,31 @@ export const scoreGeo = (m: BlockMetrics): number => lin(m.geoRisk, 0, 1, true);
 //    trend / Antonacci logic). To treat it as euphoria, pass invert=true.
 export const scoreSentiment = (m: BlockMetrics): number => lin(m.mom12m, -10, 35);
 
+/**
+ * Heuristic Big Debt Cycle "signal" — a transparent, equal-weighted debt/monetary-
+ * stress proxy mapped to a 1–5 stage. NOT authoritative: it deliberately isolates the
+ * DEBT-MECHANICS axis (debt level + service + monetization + private debt + real rate +
+ * conflict), so it legitimately diverges from the editorial stage where that call leans on
+ * the empire / geopolitical dimension. Valuation & speculation are excluded on purpose
+ * (high froth signals an early bubble, i.e. stage 2 — not high cycle severity).
+ *
+ * Each sub-score is 0..100 (higher = closer to "going broke"); the mean is bucketed into
+ * 5 equal bands. Bounds are a pre-registered calibration — move them only with justification.
+ */
+export function cycleStressSignal(m: BlockMetrics): number {
+  const subs = [
+    lin(m.debtToGDP, 40, 250), // gross govt debt
+    lin(m.debtServicePct, 5, 25), // interest, % of revenue
+    lin(m.cbAssetsPct, 10, 120), // central-bank balance sheet, % GDP
+    lin(m.privateDebtPct, 70, 210), // private debt, % GDP
+    lin(m.realRate, 4, -2), // lower real rate = softer money = more stress
+    m.internalConflict * 100,
+    m.geoRisk * 100,
+  ];
+  const stress = subs.reduce((a, b) => a + b, 0) / subs.length; // 0..100
+  return Math.max(1, Math.min(5, 1 + Math.floor(stress / 20)));
+}
+
 export const GAUGES: Record<Factor, (m: BlockMetrics) => number> = {
   valuations: scoreValuations,
   debt: scoreDebt,
