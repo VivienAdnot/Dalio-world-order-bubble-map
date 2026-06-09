@@ -43,7 +43,7 @@ npm run preview
 data.ts      SLEEVES (country->sleeve) + RAW (raw metrics/sleeve)
              + STAGES (per-sleeve cycle stage, editorial) + CYCLE_STAGES (the 5 stages)
    |
-gauges.ts    lin() + 6 scoring functions (raw -> 0..100) ; GAUGES map
+gauges.ts    lin() + 6 scoring functions (raw -> 0..100) ; GAUGES map ; cycleStressSignal()
    |
 scoring.ts   WEIGHTS ; buildBlockScores() -> BlockScore[] (+ stage/stageNote) ; rankBlocks()
    |
@@ -53,7 +53,8 @@ main.ts      ECharts init, 5 tabs, hash routing, sleeve selector
 ```
 
 - `types.ts` — shared contract (`Factor`, `FACTOR_ORDER`, `BlockMetrics`, `Sleeve`, `BlockScore`).
-  `BlockScore` carries the composite **and** `stage` (1–5) + `stageNote`.
+  `BlockScore` carries the composite, the editorial `stage` (1–5) + `stageNote`, the heuristic
+  `stageSignal` (1–5), and the raw `metrics`.
 - `world.geo.json` — world geometry, `id` = ISO3 (source johan/world.geo.json).
   HKG & SGP absent (too small, no map impact).
 - Single `#chart` canvas; each tab recomputes the ECharts option and calls `setOption`.
@@ -121,6 +122,32 @@ Stages are **hand-assigned and editorial** (NOT derived from `RAW`), set in `dat
 Current assignment: **India 2** · **Asia-Pac 3** · **Japan 4** · **LatAm 4** ·
 **USA / Europe / EM-EMEA 5** (Sound Money currently empty — no major market is pristine).
 
+### Backed by indicators + a heuristic *signal*
+
+`RAW` carries 5 Big Debt Cycle indicators (`debtServicePct`, `cbAssetsPct`, `realRate`,
+`privateDebtPct`, `internalConflict`) on top of the 8 composite metrics. `gauges.ts →
+cycleStressSignal()` maps them — **equal-weighted, bucketed into 5 bands** — to a 1–5
+**signal** (`BlockScore.stageSignal`), a transparent **debt/monetary-stress proxy**.
+
+It is **not authoritative**: valuation & speculation are excluded on purpose (froth = early
+bubble, not high severity), so the signal isolates the *debt-mechanics* axis and legitimately
+diverges from the editorial stage where that leans on empire/geopolitics. The Cycle view flags
+`signal → stage N` on divergence; Profiles shows it in the badge subtext.
+
+| Sleeve | Editorial | Signal |
+|---|---|---|
+| USA | 5 | **3** |
+| Europe | 5 | **2** |
+| Japan | 4 | 4 |
+| Asia-Pac | 3 | 3 |
+| India | 2 | 2 |
+| LatAm | 4 | **2** |
+| EM-EMEA | 5 | **2** |
+
+The four gaps are the conflict/empire-driven calls — the signal sees less *debt* stress there.
+Don't tune the editorial stage to match the signal (anti over-fitting); treat a widening gap
+as a prompt to re-examine. Indicators are order-of-magnitude **estimates to refine**.
+
 ## Method: 6 factors (exact formulas)
 
 Common engine, bounded/clamped, `invert` for "less = better":
@@ -156,6 +183,18 @@ lin(v, lo, hi, invert=false):
 | PINR | 23.0 | 3.9 | 83 | 6.3 | 14 | 0.65 | 0.40 | 6 |
 | PALAT | 10.0 | 1.6 | 75 | 2.0 | 9 | 0.25 | 0.45 | 9 |
 | PLEM | 11.0 | 1.6 | 50 | 3.0 | 8 | 0.40 | 0.75 | 10 |
+
+Big Debt Cycle indicators (feed `cycleStressSignal`; order-of-magnitude **estimates to refine**):
+
+| Ticker | debtSvc% rev | cbAssets% GDP | realRate% | privDebt% GDP | intlConflict |
+|---|---|---|---|---|---|
+| PNAS | 18 | 22 | 1.5 | 150 | 0.75 |
+| PCEU | 7 | 45 | 0.5 | 160 | 0.45 |
+| PTPXH | 8 | 125 | -1.5 | 185 | 0.25 |
+| PAEJ | 6 | 35 | 0.5 | 205 | 0.55 |
+| PINR | 24 | 20 | 1.5 | 90 | 0.45 |
+| PALAT | 22 | 15 | 6.0 | 70 | 0.55 |
+| PLEM | 10 | 20 | 2.0 | 80 | 0.65 |
 
 **Sources & confidence**: `fwdPE` (Siblis Research, per-country P/E as of 2025-12-31,
 aggregated per sleeve = proxy); `gdpGrowth` (IMF WEO Jan + Apr 2026); `debtToGDP` (IMF,

@@ -1,21 +1,32 @@
 # Refreshing the data — how-to
 
-Recipe for refreshing the Bubble Gauge numbers: **where the data lives**, **how each
-metric was obtained**, and **how it redeploys**. The methodology, current values and exact
-formulas live in [`CLAUDE.md`](../CLAUDE.md).
+Recipe for refreshing the data: **where it lives**, **how each metric was obtained**, and
+**how it redeploys**. The app places each sleeve on Dalio's **Big Debt Cycle** (a 1–5 stage)
+and keeps a 6-factor **attractiveness composite** alongside; the methodology, current values
+and exact formulas live in [`CLAUDE.md`](../CLAUDE.md).
+
+There are **two kinds of data**, both in `src/data.ts`:
+
+1. **`RAW`** — 13 measured/estimated metrics per sleeve (drives the composite **and** the
+   heuristic stage *signal*; recomputes automatically).
+2. **`STAGES`** — the **editorial** Big Debt Cycle stage (1–5) + note per sleeve. This is a
+   **manual judgement**, NOT computed — it will not refresh itself when you update `RAW`.
 
 ## 1. Where the data lives
 
-Everything is in **`src/data.ts`**, the **`RAW`** object: one row per sleeve (ticker), 8
-raw fields. This is the **only** file to touch for a numbers refresh. (`SLEEVES` only
-changes if the universe changes: adding/removing an ETF or a country.)
+`RAW` in **`src/data.ts`**: one row per sleeve, now **13 fields** (8 original + 5 Big Debt
+Cycle indicators). (`SLEEVES` only changes if the universe changes; `STAGES` is the editorial
+stage — see §2b.)
 
 ```typescript
-PNAS: { fwdPE: 27.0, pb: 7.0, debtToGDP: 122, gdpGrowth: 2.0, epsGrowth: 16, speculation: 0.85, geoRisk: 0.35, mom12m: 22 },
+PNAS: { fwdPE: 27.0, pb: 7.0, debtToGDP: 122, gdpGrowth: 2.0, epsGrowth: 16, speculation: 0.85, geoRisk: 0.35, mom12m: 22,
+        debtServicePct: 18, cbAssetsPct: 22, realRate: 1.5, privateDebtPct: 150, internalConflict: 0.75 },
 ```
 
-The 0–100 scores, the composite and the ranking all recompute **automatically** from these
-8 fields (via `gauges.ts` + `scoring.ts`). Never touch the scores by hand.
+The 0–100 scores, the composite, the ranking **and** the 1–5 stage *signal*
+(`gauges.ts → cycleStressSignal`) all recompute **automatically** from `RAW` (via
+`gauges.ts` + `scoring.ts`). Never touch the scores by hand. The editorial **stage** in
+`STAGES` does **not** recompute — re-assess it by hand (§2b).
 
 ## 2. Recipe per metric (how each was obtained)
 
@@ -29,6 +40,17 @@ The 0–100 scores, the composite and the ranking all recompute **automatically*
 | `mom12m` | justETF / Boursorama / TradingView | Trailing 12-month **price** return of the sleeve's ETF (PNAS, PCEU…). Read it directly, don't estimate. | Monthly |
 | `speculation` (0..1) | Judgement — no database "provides" this | Map onto 0..1 from euphoria proxies: valuation vs history (percentile), margin debt, IPO volume, options/retail activity. 0 = flat, 1 = max froth. | Quarterly |
 | `geoRisk` (0..1) | Judgement — informed by WEO (risk section); GPR (Geopolitical Risk) index | Map onto 0..1: active conflicts, energy/trade dependence, sanctions. (E.g. EMEA raised to 0.75 after the Middle East conflict, WEO Apr 2026.) | As events unfold |
+| `debtServicePct` | IMF Fiscal Monitor; national budgets | General-government **interest expense as % of revenue** (representative country). The debt-service *flow*. | Semi-annual |
+| `cbAssetsPct` | Central-bank balance sheets; BIS | Central-bank total assets (or govt-bond holdings) **% of GDP** — proxy for monetization. (E.g. BoJ ≫ 100%.) | Semi-annual |
+| `realRate` | Central-bank policy rate − core inflation (IMF / national) | **Real** short-term policy rate, %. Negative = soft money / suppression. | Quarterly |
+| `privateDebtPct` | BIS — credit to private non-financial sector | Private (household + corporate) debt **% of GDP**, representative country. | Semi-annual |
+| `internalConflict` (0..1) | Judgement — informed by polarization / political-risk indices | Internal political polarization & conflict, 0..1 (parallels `geoRisk`'s *external* read). | As events unfold |
+
+These 5 Big Debt Cycle indicators are currently **order-of-magnitude estimates to refine**
+(treat like `speculation`/`geoRisk`). They feed only the heuristic stage *signal*, not the
+composite. The signal is an equal-weighted, bucketed debt/monetary-stress proxy — it
+deliberately ignores valuation/speculation and so diverges from the editorial stage where
+that call rests on empire/geopolitics (USA, Europe, LatAm, EM-EMEA today).
 
 **Aggregation principle**: a sleeve = several countries. Keep a **representative** value
 (dominant country) or a **cap-weighted blend** of the main constituents. Document the
@@ -37,6 +59,24 @@ choice in a comment in `data.ts` (already done line by line).
 **Subjective links** (own them explicitly): `speculation`, `geoRisk`, and the **`lin()`
 bounds** in `gauges.ts`. These bounds are a calibration — only move them with a written
 justification (anti over-fitting).
+
+## 2b. The editorial stage (`STAGES`)
+
+`STAGES` in `data.ts` is the **authoritative** Big Debt Cycle stage (1–5) + a `note` per
+sleeve. It is a **deliberate editorial judgement** from Dalio's framework — *not* derived
+from `RAW`, and it does **not** auto-update. The metrics inform it; you make the call.
+
+```typescript
+PNAS: { stage: 5, note: 'Late-empire Stage 5 — ~90–95% through the Big Cycle; …' },
+```
+
+- **When to re-stage**: a regime change (bubble pops, deleveraging begins, crisis recedes),
+  a large move in the indicators, or a fresh Dalio read. Not every numbers refresh.
+- **Cross-check against the signal**: `cycleStressSignal` shows a `signal → stage N` on the
+  Cycle view when it disagrees. A persistent, widening gap is a prompt to re-examine the
+  editorial call (or to accept that the gap is the empire/geopolitics dimension the signal
+  can't see). Don't tune the editorial stage just to match the signal.
+- Keep the `note` in sync with the metrics it cites.
 
 ## 3. How it redeploys
 
@@ -66,12 +106,14 @@ Only commit `src/data.ts` — never the built bundle.
 
 ## 4. Refresh checklist
 
-1. Gather the up-to-date values (table in section 2).
+1. Gather the up-to-date values (table in section 2 — 13 `RAW` fields).
 2. Edit **`RAW`** in `src/data.ts`; update the per-line source/date comment.
-3. `git commit && git push` to `main` (auto-build + deploy).
-4. **Sanity-check** the live app: did the ranking move plausibly? Note any large moves and
-   their cause (e.g. WEO, 12-month return).
-5. Record the refresh date (commit message + optionally a changelog line here).
+3. Re-assess the editorial **`STAGES`** if a regime/indicator shift warrants it (§2b) —
+   this is the one part that does not auto-update.
+4. `git commit && git push` to `main` (auto-build + deploy).
+5. **Sanity-check** the live app: did the ranking move plausibly? Did any `signal → stage`
+   divergence open or close? Note large moves and their cause (WEO, 12-month return, etc.).
+6. Record the refresh date (commit message + optionally a changelog line here).
 
 > Guardrail: refresh the **inputs** (`RAW`), not the machinery. Changing the weights, the
 > `lin()` bounds, or the sign of Sentiment is a **model decision** — pre-register it
