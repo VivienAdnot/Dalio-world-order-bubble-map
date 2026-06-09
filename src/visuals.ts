@@ -172,7 +172,10 @@ export function buildBarOption(blocks: BlockScore[]): EChartsOption {
   const sorted = [...blocks].sort((a, b) => a.composite - b.composite);
   return {
     backgroundColor: 'transparent',
-    grid: { left: 128, right: 48, top: 16, bottom: 24 },
+    // top clears the page header (kicker + title + tabs) — the chart is
+    // full-screen (#chart is inset:0), so a small top would run the first bar
+    // and the 40/70 threshold labels up under the header.
+    grid: { left: 128, right: 48, top: 150, bottom: 24 },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     xAxis: {
       type: 'value',
