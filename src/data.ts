@@ -48,15 +48,20 @@ export const SLEEVES: Record<string, Sleeve> = {
 //
 // Subjective inputs: the lin() bounds (gauges.ts), speculation, geoRisk,
 // and the sign of Sentiment (positive momentum, not inverted). The rest is mechanical.
+//
+// Big Debt Cycle indicators (debtServicePct, cbAssetsPct, realRate, privateDebtPct,
+// internalConflict) are order-of-magnitude ESTIMATES to refine (IMF Fiscal Monitor,
+// central-bank balance sheets, BIS private-debt series; internalConflict is judgement).
+// They feed the heuristic stage signal (gauges.ts → cycleStressSignal); see docs.
 // ─────────────────────────────────────────────────────────────────────────
 export const RAW: Record<string, BlockMetrics> = {
-  PNAS:  { fwdPE: 27.0, pb: 7.0, debtToGDP: 122, gdpGrowth: 2.0, epsGrowth: 16, speculation: 0.85, geoRisk: 0.35, mom12m: 22 },
-  PCEU:  { fwdPE: 14.5, pb: 2.1, debtToGDP: 90,  gdpGrowth: 1.3, epsGrowth: 7,  speculation: 0.35, geoRisk: 0.40, mom12m: 12 },
-  PTPXH: { fwdPE: 15.5, pb: 1.5, debtToGDP: 250, gdpGrowth: 0.7, epsGrowth: 8,  speculation: 0.35, geoRisk: 0.30, mom12m: 13 },
-  PAEJ:  { fwdPE: 16.0, pb: 1.9, debtToGDP: 65,  gdpGrowth: 4.0, epsGrowth: 12, speculation: 0.55, geoRisk: 0.60, mom12m: 18 },
-  PINR:  { fwdPE: 23.0, pb: 3.9, debtToGDP: 83,  gdpGrowth: 6.3, epsGrowth: 14, speculation: 0.65, geoRisk: 0.40, mom12m: 6  },
-  PALAT: { fwdPE: 10.0, pb: 1.6, debtToGDP: 75,  gdpGrowth: 2.0, epsGrowth: 9,  speculation: 0.25, geoRisk: 0.45, mom12m: 9  },
-  PLEM:  { fwdPE: 11.0, pb: 1.6, debtToGDP: 50,  gdpGrowth: 3.0, epsGrowth: 8,  speculation: 0.40, geoRisk: 0.75, mom12m: 10 },
+  PNAS:  { fwdPE: 27.0, pb: 7.0, debtToGDP: 122, gdpGrowth: 2.0, epsGrowth: 16, speculation: 0.85, geoRisk: 0.35, mom12m: 22, debtServicePct: 18, cbAssetsPct: 22,  realRate: 1.5,  privateDebtPct: 150, internalConflict: 0.75 },
+  PCEU:  { fwdPE: 14.5, pb: 2.1, debtToGDP: 90,  gdpGrowth: 1.3, epsGrowth: 7,  speculation: 0.35, geoRisk: 0.40, mom12m: 12, debtServicePct: 7,  cbAssetsPct: 45,  realRate: 0.5,  privateDebtPct: 160, internalConflict: 0.45 },
+  PTPXH: { fwdPE: 15.5, pb: 1.5, debtToGDP: 250, gdpGrowth: 0.7, epsGrowth: 8,  speculation: 0.35, geoRisk: 0.30, mom12m: 13, debtServicePct: 8,  cbAssetsPct: 125, realRate: -1.5, privateDebtPct: 185, internalConflict: 0.25 },
+  PAEJ:  { fwdPE: 16.0, pb: 1.9, debtToGDP: 65,  gdpGrowth: 4.0, epsGrowth: 12, speculation: 0.55, geoRisk: 0.60, mom12m: 18, debtServicePct: 6,  cbAssetsPct: 35,  realRate: 0.5,  privateDebtPct: 205, internalConflict: 0.55 },
+  PINR:  { fwdPE: 23.0, pb: 3.9, debtToGDP: 83,  gdpGrowth: 6.3, epsGrowth: 14, speculation: 0.65, geoRisk: 0.40, mom12m: 6,  debtServicePct: 24, cbAssetsPct: 20,  realRate: 1.5,  privateDebtPct: 90,  internalConflict: 0.45 },
+  PALAT: { fwdPE: 10.0, pb: 1.6, debtToGDP: 75,  gdpGrowth: 2.0, epsGrowth: 9,  speculation: 0.25, geoRisk: 0.45, mom12m: 9,  debtServicePct: 22, cbAssetsPct: 15,  realRate: 6.0,  privateDebtPct: 70,  internalConflict: 0.55 },
+  PLEM:  { fwdPE: 11.0, pb: 1.6, debtToGDP: 50,  gdpGrowth: 3.0, epsGrowth: 8,  speculation: 0.40, geoRisk: 0.75, mom12m: 10, debtServicePct: 10, cbAssetsPct: 20,  realRate: 2.0,  privateDebtPct: 80,  internalConflict: 0.65 },
 };
 
 // ─────────────────────────────────────────────────────────────────────────

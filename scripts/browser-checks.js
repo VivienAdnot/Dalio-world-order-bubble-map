@@ -45,6 +45,16 @@
     return (stages === 5 && pts === 7) || `stages=${stages} points=${pts}`;
   });
 
+  check('cycle: each sleeve carries a 1–5 data signal + debt indicators', () => {
+    $('[data-view="cycle"]').click();
+    const d = window.__dalioChart.getOption().series[0].data;
+    const ok = d.length === 7 && d.every((p) =>
+      p.stageSignal >= 1 && p.stageSignal <= 5
+      && p.m && typeof p.m.debtServicePct === 'number'
+      && typeof p.m.cbAssetsPct === 'number' && typeof p.m.realRate === 'number');
+    return ok || `signals=${JSON.stringify(d.map((p) => p.stageSignal))}`;
+  });
+
   // ── Interaction: tabs switch the view and update the URL hash ─────────────
   check('clicking Bars activates the bar view and sets #bars', () => {
     $('[data-view="bar"]').click();
