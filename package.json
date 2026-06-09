@@ -5,10 +5,9 @@
   "type": "module",
   "description": "Dalio-style Bubble Gauge — 7 sleeves ETF géographiques Amundi PEA notés sur 6 facteurs (100 = attractif / peu de bulle), carte + radars + barres.",
   "scripts": {
-    "dev": "vite --open /app.html",
+    "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "deploy": "npm run build && node -e \"require('fs').copyFileSync('dist/app.html','index.html')\""
+    "preview": "vite preview"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

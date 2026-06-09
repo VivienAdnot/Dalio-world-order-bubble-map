@@ -1,16 +1,11 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
-// Source entry = app.html (références /src/main.ts). Build en fichier unique
-// (ECharts inliné) -> dist/app.html, que `npm run deploy` copie en index.html
-// à la racine (servi par GitHub Pages). On garde l'entrée source séparée du
-// bundle publié pour qu'un rebuild ne clobber jamais le point d'entrée.
+// Entrée source = index.html (racine, références /src/main.ts). Build en
+// fichier unique (ECharts inliné) -> dist/index.html, publié sur GitHub Pages
+// par le workflow Actions (.github/workflows/deploy.yml). Le bundle n'est
+// jamais commité : `dist/` est gitignoré.
 export default defineConfig({
   base: './',
   plugins: [viteSingleFile()],
-  build: {
-    rollupOptions: {
-      input: 'app.html',
-    },
-  },
 });

@@ -14,19 +14,18 @@ App live : https://vivienadnot.github.io/Dalio-world-order-bubble-map/
 
 ```bash
 npm install
-npm run dev      # serveur de dev (ouvre /app.html)
-npm run build    # tsc && vite build  -> dist/app.html (un seul fichier)
+npm run dev      # serveur de dev (index.html)
+npm run build    # tsc && vite build  -> dist/index.html (un seul fichier)
 npm run preview
-npm run deploy    # build + copie dist/app.html -> index.html (racine, servi par Pages)
 ```
 
-### Entrée source vs bundle publié
+### Déploiement (GitHub Actions)
 
-- `app.html` — **point d'entrée source** (référence `/src/main.ts`). C'est lui qu'on édite.
-- `index.html` (racine) — **bundle publié** (fichier unique), régénéré par `npm run deploy`.
-- On garde les deux séparés exprès : un rebuild ne clobber jamais le point d'entrée.
-- **Déploiement** : `npm run deploy` puis commit `index.html`. GitHub Pages sert la
-  racine du repo → le site se met à jour au push. (Aucun réglage Pages à changer.)
+- `index.html` (racine) = **point d'entrée source** (référence `/src/main.ts`). C'est ce qu'on édite.
+- Le bundle **n'est jamais commité** : `dist/` est gitignoré.
+- À chaque push sur `main`, `.github/workflows/deploy.yml` lance `npm ci && npm run build`
+  puis publie `dist/` sur GitHub Pages (build type = *workflow*, pas *branch*).
+- Aucune étape manuelle, aucun bundle dans l'historique git. Même URL live.
 
 ## Architecture (flux de données)
 
