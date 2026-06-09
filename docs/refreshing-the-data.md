@@ -46,11 +46,15 @@ The 0–100 scores, the composite, the ranking **and** the 1–5 stage *signal*
 | `privateDebtPct` | BIS — credit to private non-financial sector | Private (household + corporate) debt **% of GDP**, representative country. | Semi-annual |
 | `internalConflict` (0..1) | Judgement — informed by polarization / political-risk indices | Internal political polarization & conflict, 0..1 (parallels `geoRisk`'s *external* read). | As events unfold |
 
-These 5 Big Debt Cycle indicators are currently **order-of-magnitude estimates to refine**
-(treat like `speculation`/`geoRisk`). They feed only the heuristic stage *signal*, not the
-composite. The signal is an equal-weighted, bucketed debt/monetary-stress proxy — it
-deliberately ignores valuation/speculation and so diverges from the editorial stage where
-that call rests on empire/geopolitics (USA, Europe, LatAm, EM-EMEA today).
+These 5 Big Debt Cycle indicators are **sourced** (IMF Fiscal Monitor / Eurostat 2024, BIS-
+via-FRED Q3-2025, central-bank balance sheets 2025–26, policy rate − latest CPI mid-2026),
+using the **representative country** per sleeve (PNAS=US, PCEU=euro area, PTPXH=Japan,
+PAEJ=China, PINR=India, PALAT=Brazil, PLEM=Saudi/South-Africa blend). `internalConflict`
+remains a 0..1 **judgement** (no single source). They feed only the heuristic stage
+*signal*, not the composite. The signal is an equal-weighted, bucketed debt/monetary-stress
+proxy — it deliberately ignores valuation/speculation, so it diverges from the editorial
+stage where that call rests on empire/geopolitics (USA, Europe, EM-EMEA), on financial
+repression (Japan: 250% debt but ~4% debt service), or on hard money (Brazil: +10% real rate).
 
 **Aggregation principle**: a sleeve = several countries. Keep a **representative** value
 (dominant country) or a **cap-weighted blend** of the main constituents. Document the

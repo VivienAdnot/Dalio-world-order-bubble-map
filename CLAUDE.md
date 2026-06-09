@@ -137,16 +137,20 @@ diverges from the editorial stage where that leans on empire/geopolitics. The Cy
 | Sleeve | Editorial | Signal |
 |---|---|---|
 | USA | 5 | **3** |
-| Europe | 5 | **2** |
-| Japan | 4 | 4 |
+| Europe | 5 | **3** |
+| Japan | 4 | **3** |
 | Asia-Pac | 3 | 3 |
 | India | 2 | 2 |
 | LatAm | 4 | **2** |
 | EM-EMEA | 5 | **2** |
 
-The four gaps are the conflict/empire-driven calls — the signal sees less *debt* stress there.
-Don't tune the editorial stage to match the signal (anti over-fitting); treat a widening gap
-as a prompt to re-examine. Indicators are order-of-magnitude **estimates to refine**.
+The gaps are interpretable: USA/Europe/EM-EMEA editorial-5 calls lean on empire/geopolitics
+the signal can't see (their *debt* stress is mid-cycle). **Japan** (ed 4 / sig 3) is the
+sharpest lesson — 250%-of-GDP debt but interest is only ~4% of revenue (financial repression
+keeps it cheap to carry), so the debt-*service* axis reads lower than the deleveraging call.
+**Brazil** (ed 4 / sig 2): a +10% real rate reads as hard money, not stress. Don't tune the
+editorial stage to match the signal (anti over-fitting); treat a widening gap as a prompt to
+re-examine.
 
 ## Method: 6 factors (exact formulas)
 
@@ -184,17 +188,19 @@ lin(v, lo, hi, invert=false):
 | PALAT | 10.0 | 1.6 | 75 | 2.0 | 9 | 0.25 | 0.45 | 9 |
 | PLEM | 11.0 | 1.6 | 50 | 3.0 | 8 | 0.40 | 0.75 | 10 |
 
-Big Debt Cycle indicators (feed `cycleStressSignal`; order-of-magnitude **estimates to refine**):
+Big Debt Cycle indicators (feed `cycleStressSignal`; **sourced** — IMF Fiscal Monitor /
+BIS / central banks, 2024–mid-2026; `internalConflict` is judgement. See
+[`docs/refreshing-the-data.md`](docs/refreshing-the-data.md) §2):
 
-| Ticker | debtSvc% rev | cbAssets% GDP | realRate% | privDebt% GDP | intlConflict |
-|---|---|---|---|---|---|
-| PNAS | 18 | 22 | 1.5 | 150 | 0.75 |
-| PCEU | 7 | 45 | 0.5 | 160 | 0.45 |
-| PTPXH | 8 | 125 | -1.5 | 185 | 0.25 |
-| PAEJ | 6 | 35 | 0.5 | 205 | 0.55 |
-| PINR | 24 | 20 | 1.5 | 90 | 0.45 |
-| PALAT | 22 | 15 | 6.0 | 70 | 0.55 |
-| PLEM | 10 | 20 | 2.0 | 80 | 0.65 |
+| Ticker | basis | debtSvc% rev | cbAssets% GDP | realRate% | privDebt% GDP | intlConflict |
+|---|---|---|---|---|---|---|
+| PNAS | US | 13.2 | 22 | -0.2 | 140 | 0.75 |
+| PCEU | euro area | 4.1 | 40 | -1.2 | 154 | 0.45 |
+| PTPXH | Japan | 4.0 | 102 | -0.7 | 173 | 0.25 |
+| PAEJ | China | 3.7 | 34 | 1.8 | 201 | 0.55 |
+| PINR | India | 25.0 | 28 | 1.8 | 97 | 0.45 |
+| PALAT | Brazil | 21.0 | 40 | 10.1 | 91 | 0.55 |
+| PLEM | Saudi/S.Africa | 11.4 | 34 | 2.8 | 72 | 0.65 |
 
 **Sources & confidence**: `fwdPE` (Siblis Research, per-country P/E as of 2025-12-31,
 aggregated per sleeve = proxy); `gdpGrowth` (IMF WEO Jan + Apr 2026); `debtToGDP` (IMF,
