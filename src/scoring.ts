@@ -2,7 +2,7 @@ import { RAW, SLEEVES } from './data';
 import { GAUGES } from './gauges';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
-// Composite = 0.30·Valo + 0.25·Dette + 0.20·Croiss + 0.10·Levier + 0.10·Géo + 0.05·Sent
+// Composite = 0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.10·Leverage + 0.10·Geo + 0.05·Sentiment
 export const WEIGHTS: Record<Factor, number> = {
   valuations: 0.3,
   debt: 0.25,
@@ -12,7 +12,7 @@ export const WEIGHTS: Record<Factor, number> = {
   sentiment: 0.05,
 };
 
-/** Brut (RAW) -> scores 0..100 par facteur -> composite pondéré, pour chaque sleeve. */
+/** RAW -> per-factor 0..100 scores -> weighted composite, for each sleeve. */
 export function buildBlockScores(): BlockScore[] {
   return Object.entries(SLEEVES).map(([id, sleeve]) => {
     const metrics = RAW[id];
@@ -33,6 +33,6 @@ export function buildBlockScores(): BlockScore[] {
   });
 }
 
-/** Tri décroissant par composite (meilleur = attractif en tête). */
+/** Sort descending by composite (best = most attractive first). */
 export const rankBlocks = (blocks: BlockScore[]): BlockScore[] =>
   [...blocks].sort((a, b) => b.composite - a.composite);

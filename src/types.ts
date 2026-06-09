@@ -1,4 +1,4 @@
-// Contrat de types partagé : data.ts -> gauges.ts -> scoring.ts -> visuals.ts
+// Shared type contract: data.ts -> gauges.ts -> scoring.ts -> visuals.ts
 
 export type Factor =
   | 'valuations'
@@ -17,26 +17,26 @@ export const FACTOR_ORDER: Factor[] = [
   'sentiment',
 ];
 
-/** Entrées BRUTES, éditées à la main dans data.ts (RAW). */
+/** RAW inputs, hand-edited in data.ts (RAW). */
 export interface BlockMetrics {
   fwdPE: number;
   pb: number;
   debtToGDP: number;
   gdpGrowth: number;
   epsGrowth: number;
-  speculation: number; // 0..1 (1 = froth max)
-  geoRisk: number; // 0..1 (1 = risque max)
-  mom12m: number; // perf prix 12 mois, %
+  speculation: number; // 0..1 (1 = max froth)
+  geoRisk: number; // 0..1 (1 = max risk)
+  mom12m: number; // 12-month price performance, %
 }
 
-/** Définition d'un sleeve (1 ETF Amundi PEA = 1 bloc). */
+/** Sleeve definition (1 Amundi PEA ETF = 1 block). */
 export interface Sleeve {
   label: string;
   index: string;
   members: string[]; // ISO3
 }
 
-/** Sortie du scoring -> entrée des visuals. */
+/** Scoring output -> visuals input. */
 export interface BlockScore {
   id: string;
   label: string;

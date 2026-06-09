@@ -18,7 +18,8 @@ npm run preview
 
 To update the numbers: edit **`src/data.ts`** (`RAW`) and push to `main`. A GitHub
 Actions workflow builds and deploys `dist/` to Pages automatically — no built bundle
-is committed.
+is committed. Full step-by-step in [`docs/refreshing-the-data.md`](./docs/refreshing-the-data.md)
+(where each metric comes from, cadence, and the deploy paths).
 
 ## Layout
 
@@ -39,5 +40,5 @@ data sources, and the current ranking).
 
 ## URL anchors
 
-`#carte` · `#radar` · `#barres` · `#profils` open a given tab; `#profils-<ticker>`
-(lowercase, e.g. `#profils-plem`) opens the Profiles tab on a specific sleeve.
+`#map` · `#radar` · `#bars` · `#profiles` open a given tab; `#profiles-<ticker>`
+(lowercase, e.g. `#profiles-plem`) opens the Profiles tab on a specific sleeve.

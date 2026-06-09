@@ -1,86 +1,93 @@
-# Dalio-Style Bubble Gauge — Sleeves PEA
+# Dalio-Style Bubble Gauge — PEA Sleeves
 
-Mini-app web qui note **7 sleeves ETF géographiques Amundi PEA** sur **6 facteurs**
-type *Dalio Bubble Gauge* (**100 = attractif / peu de bulle**), puis classe, colore
-et visualise (carte choroplèthe, radars, barres). Pur front, sans backend ni clé API.
+Mini web app that scores **7 geographic Amundi PEA ETF sleeves** on **6 factors**,
+*Dalio Bubble Gauge* style (**100 = attractive / low bubble risk**), then ranks, colours
+and visualises them (choropleth map, radars, bars). Pure front-end, no backend, no API key.
 
-App live : https://vivienadnot.github.io/Dalio-world-order-bubble-map/
+Live app: https://vivienadnot.github.io/Dalio-world-order-bubble-map/
 
-## Stack & commandes
+## Language convention
 
-- **Vite 5** + **TypeScript 5** + **ECharts 5** (seule dépendance runtime).
-- Build en **fichier unique** via `vite-plugin-singlefile` (ECharts inliné, ~1,3 Mo ;
-  seules les Google Fonts restent distantes, dégradation propre).
+**English only.** All code comments and all user-facing text (HTML, ECharts labels,
+tooltips, legends, sleeve labels, URL anchors) are written in English. Keep it that way
+for every future change — no French in source or rendered output.
+
+## Stack & commands
+
+- **Vite 5** + **TypeScript 5** + **ECharts 5** (only runtime dependency).
+- **Single-file** build via `vite-plugin-singlefile` (ECharts inlined, ~1.3 MB;
+  only Google Fonts stay remote, with clean degradation).
 
 ```bash
 npm install
-npm run dev      # serveur de dev (index.html)
-npm run build    # tsc && vite build  -> dist/index.html (un seul fichier)
+npm run dev      # dev server (index.html)
+npm run build    # tsc && vite build  -> dist/index.html (single file)
 npm run preview
 ```
 
-### Déploiement (GitHub Actions)
+### Deployment (GitHub Actions)
 
-- `index.html` (racine) = **point d'entrée source** (référence `/src/main.ts`). C'est ce qu'on édite.
-- Le bundle **n'est jamais commité** : `dist/` est gitignoré.
-- À chaque push sur `main`, `.github/workflows/deploy.yml` lance `npm ci && npm run build`
-  puis publie `dist/` sur GitHub Pages (build type = *workflow*, pas *branch*).
-- Aucune étape manuelle, aucun bundle dans l'historique git. Même URL live.
+- `index.html` (root) = **source entry point** (references `/src/main.ts`). This is what we edit.
+- The bundle is **never committed**: `dist/` is gitignored.
+- On every push to `main`, `.github/workflows/deploy.yml` runs `npm ci && npm run build`
+  then publishes `dist/` to GitHub Pages (build type = *workflow*, not *branch*).
+- No manual step, no bundle in git history. Same live URL.
+- To refresh the numbers (`RAW` in `src/data.ts`): see [`docs/refreshing-the-data.md`](./docs/refreshing-the-data.md) — per-metric sources, cadence, and deploy paths.
 
-## Architecture (flux de données)
+## Architecture (data flow)
 
 ```
-data.ts      SLEEVES (pays->sleeve) + RAW (métriques brutes/sleeve)
+data.ts      SLEEVES (country->sleeve) + RAW (raw metrics/sleeve)
    |
-gauges.ts    lin() + 6 fonctions de score (brut -> 0..100) ; map GAUGES
+gauges.ts    lin() + 6 scoring functions (raw -> 0..100) ; GAUGES map
    |
 scoring.ts   WEIGHTS ; buildBlockScores() -> BlockScore[] ; rankBlocks()
    |
-visuals.ts   builders EChartsOption purs (aucun état) + couleurs/labels
+visuals.ts   pure EChartsOption builders (no state) + colours/labels
    |
-main.ts      init ECharts, 4 onglets, routage par ancre #, sélecteur de sleeve
+main.ts      ECharts init, 4 tabs, hash routing, sleeve selector
 ```
 
-- `types.ts` — contrat partagé (`Factor`, `FACTOR_ORDER`, `BlockMetrics`, `Sleeve`, `BlockScore`).
-- `world.geo.json` — géométrie monde, `id` = ISO3 (source johan/world.geo.json).
-  HKG & SGP absents (trop petits, sans impact carte).
-- Un seul canvas `#chart` ; chaque onglet recalcule l'option ECharts et appelle `setOption`.
+- `types.ts` — shared contract (`Factor`, `FACTOR_ORDER`, `BlockMetrics`, `Sleeve`, `BlockScore`).
+- `world.geo.json` — world geometry, `id` = ISO3 (source johan/world.geo.json).
+  HKG & SGP absent (too small, no map impact).
+- Single `#chart` canvas; each tab recomputes the ECharts option and calls `setOption`.
 
-### Surface de `visuals.ts`
+### `visuals.ts` surface
 
-- `BANDS` → vert 70–100, jaune 40–69, rouge 0–39 ; `colorOf(score)`, `FACTOR_LABELS` (FR).
-- `registerWorldMap(echarts, geojson)` (copie `feature.id` → `properties.iso3`, match par ISO3).
-- `buildMapOption`, `buildRadarOption` (7 sleeves superposés), `buildBarOption`,
-  `buildProfileRadarOption(blocks, selected)` (radar large : sleeve sélectionné rempli
-  vs moyenne des 7 en pointillés, labels d'axes colorés, badge composite).
+- `BANDS` → green 70–100, yellow 40–69, red 0–39 ; `colorOf(score)`, `FACTOR_LABELS`.
+- `registerWorldMap(echarts, geojson)` (copies `feature.id` → `properties.iso3`, match by ISO3).
+- `buildMapOption`, `buildRadarOption` (7 sleeves overlaid), `buildBarOption`,
+  `buildProfileRadarOption(blocks, selected)` (large radar: selected sleeve filled
+  vs the average of the 7 dashed, coloured axis labels, composite badge).
 
-### Onglets + routage (`main.ts`)
+### Tabs + routing (`main.ts`)
 
-- Vues : `map` / `radar` / `bar` / `profils` (boutons `.tab[data-view]`).
-- **Ancres d'URL** (lues au chargement et sur `hashchange`) :
-  `#carte`→map, `#radar`, `#barres`(ou `#barre`)→bar, `#profils`(ou `#profil`).
-- `#profils-<ticker>` ouvre Profils sur un sleeve précis (ex. `#profils-plem`, ticker en minuscules).
-- Cliquer un onglet écrit l'ancre ; choisir un sleeve écrit `#profils-<id>` via `replaceState`.
+- Views: `map` / `radar` / `bar` / `profiles` (buttons `.tab[data-view]`).
+- **URL anchors** (read on load and on `hashchange`):
+  `#map`, `#radar`, `#bars`(or `#bar`)→bar, `#profiles`(or `#profile`).
+- `#profiles-<ticker>` opens Profiles on a specific sleeve (e.g. `#profiles-plem`, lowercase ticker).
+- Clicking a tab writes the anchor; choosing a sleeve writes `#profiles-<id>` via `replaceState`.
 
-## Univers : 7 sleeves (1 ETF Amundi PEA = 1 bloc)
+## Universe: 7 sleeves (1 Amundi PEA ETF = 1 block)
 
-| Ticker | Sleeve | Indice | Membres ISO3 (partition carte) |
+| Ticker | Sleeve | Index | ISO3 members (map partition) |
 |---|---|---|---|
 | PNAS | USA | Nasdaq-100 | USA |
 | PCEU | Europe | MSCI Europe | AUT BEL DNK FIN FRA DEU IRL ITA NLD NOR PRT ESP SWE CHE GBR |
-| PTPXH | Japon | TOPIX | JPN |
-| PAEJ | Asie-Pac ex-Japon | MSCI AC Asia Pacific ex Japan | AUS HKG NZL SGP CHN KOR TWN IDN MYS PHL THA |
-| PINR | Inde | MSCI India | IND |
+| PTPXH | Japan | TOPIX | JPN |
+| PAEJ | Asia-Pac ex-Japan | MSCI AC Asia Pacific ex Japan | AUS HKG NZL SGP CHN KOR TWN IDN MYS PHL THA |
+| PINR | India | MSCI India | IND |
 | PALAT | LatAm | MSCI EM Latin America | BRA MEX CHL COL PER |
 | PLEM | EM-EMEA | MSCI EM EMEA | POL CZE HUN GRC TUR SAU ARE QAT KWT ZAF |
 
-- **Inde** (PINR) découpée de PAEJ ; **Chine** reste dans PAEJ (pas de sleeve Chine).
-  Pour sortir la Chine : créer `PASI { members: ['CHN'] }` et retirer `'CHN'` de PAEJ.
-- EM large (PAEEM/PEMS) volontairement **non** utilisé (doublon avec les 3 sleeves EM régionaux).
+- **India** (PINR) split out of PAEJ; **China** stays in PAEJ (no China sleeve).
+  To break China out: create `PASI { members: ['CHN'] }` and remove `'CHN'` from PAEJ.
+- Broad EM (PAEEM/PEMS) deliberately **not** used (overlaps the 3 regional EM sleeves).
 
-## Méthode : 6 facteurs (formules exactes)
+## Method: 6 factors (exact formulas)
 
-Moteur commun, borné/clampé, `invert` pour « moins = mieux » :
+Common engine, bounded/clamped, `invert` for "less = better":
 
 ```
 lin(v, lo, hi, invert=false):
@@ -88,24 +95,23 @@ lin(v, lo, hi, invert=false):
   return round((invert ? 1 - t : t) * 100)
 ```
 
-| # | Facteur | Formule | Sens |
+| # | Factor | Formula | Direction |
 |---|---|---|---|
-| 1 | valuations | `0.7·lin(fwdPE,8,30,inv) + 0.3·lin(pb,1,8,inv)` | cher = bas |
-| 2 | debt | `lin(debtToGDP,40,160,inv)` | dette/PIB élevée = bas |
-| 3 | growth | `0.5·lin(gdpGrowth,0,7) + 0.5·lin(epsGrowth,0,18)` | plus = mieux |
-| 4 | leverage | `lin(speculation,0,1,inv)` | euphorie = bas |
-| 5 | geo | `lin(geoRisk,0,1,inv)` | risque élevé = bas |
-| 6 | sentiment | `lin(mom12m,-10,35)` | momentum positif (trend / Antonacci) |
+| 1 | valuations | `0.7·lin(fwdPE,8,30,inv) + 0.3·lin(pb,1,8,inv)` | expensive = low |
+| 2 | debt | `lin(debtToGDP,40,160,inv)` | high debt/GDP = low |
+| 3 | growth | `0.5·lin(gdpGrowth,0,7) + 0.5·lin(epsGrowth,0,18)` | more = better |
+| 4 | leverage | `lin(speculation,0,1,inv)` | euphoria = low |
+| 5 | geo | `lin(geoRisk,0,1,inv)` | high risk = low |
+| 6 | sentiment | `lin(mom12m,-10,35)` | positive momentum (trend / Antonacci) |
 
-**Composite** = `round(0.30·Valo + 0.25·Dette + 0.20·Croiss + 0.10·Levier + 0.10·Géo + 0.05·Sent)`.
+**Composite** = `round(0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.10·Leverage + 0.10·Geo + 0.05·Sentiment)`.
 
-> ⚠️ Choix de modélisation : le **Sentiment n'est PAS inversé** (forte hausse récente =
-> score haut, logique trend). Pour le traiter en euphorie, repasser `invert=true` dans
-> `scoreSentiment`.
+> ⚠️ Modelling choice: Sentiment is **NOT** inverted (strong recent rise = high
+> score, trend logic). To treat it as euphoria, set `invert=true` in `scoreSentiment`.
 
-## Données brutes actuelles (`RAW`, mid-2026)
+## Current raw data (`RAW`, mid-2026)
 
-| Ticker | fwdPE | pb | debt%PIB | gdp% | eps% | spec | geo | mom12m |
+| Ticker | fwdPE | pb | debt%GDP | gdp% | eps% | spec | geo | mom12m |
 |---|---|---|---|---|---|---|---|---|
 | PNAS | 27.0 | 7.0 | 122 | 2.0 | 16 | 0.85 | 0.35 | 22 |
 | PCEU | 14.5 | 2.1 | 90 | 1.3 | 7 | 0.35 | 0.40 | 12 |
@@ -115,16 +121,16 @@ lin(v, lo, hi, invert=false):
 | PALAT | 10.0 | 1.6 | 75 | 2.0 | 9 | 0.25 | 0.45 | 9 |
 | PLEM | 11.0 | 1.6 | 50 | 3.0 | 8 | 0.40 | 0.75 | 10 |
 
-**Sources & confiance** : `fwdPE` (Siblis Research, P/E par pays au 31/12/2025, agrégés
-par sleeve = proxy) ; `gdpGrowth` (FMI WEO janv.+avr. 2026) ; `debtToGDP` (FMI, dette
-pub. brute représentative) ; `pb`/`epsGrowth`/`mom12m` = estimations à affiner ;
-`speculation`/`geoRisk` = **0..1, dires d'analyste** (geoRisk Golfe/EMEA relevé suite au
-conflit Moyen-Orient, WEO avr. 2026). Les 4 maillons subjectifs = bornes des `lin()`,
-`speculation`, `geoRisk`, signe du Sentiment. Le reste est mécanique/reproductible.
+**Sources & confidence**: `fwdPE` (Siblis Research, per-country P/E as of 2025-12-31,
+aggregated per sleeve = proxy); `gdpGrowth` (IMF WEO Jan + Apr 2026); `debtToGDP` (IMF,
+representative gross public debt); `pb`/`epsGrowth`/`mom12m` = estimates to refine;
+`speculation`/`geoRisk` = **0..1, analyst judgement** (geoRisk for Gulf/EMEA raised after
+the Middle East conflict, WEO Apr 2026). The 4 subjective inputs = the `lin()` bounds,
+`speculation`, `geoRisk`, the sign of Sentiment. The rest is mechanical/reproducible.
 
-## Classement courant (calculé, mid-2026)
+## Current ranking (computed, mid-2026)
 
-| Rang | Ticker | Composite | Couleur |
+| Rank | Ticker | Composite | Colour |
 |---|---|---|---|
 | 1 | PLEM | 69 | 🟡 |
 | 2 | PALAT | 68 | 🟡 |
@@ -134,12 +140,12 @@ conflit Moyen-Orient, WEO avr. 2026). Les 4 maillons subjectifs = bornes des `li
 | 6 | PTPXH | 44 | 🟡 |
 | 7 | PNAS | 36 | 🔴 |
 
-(Aucun sleeve ≥70 après le passage du Sentiment en momentum-positif ; PLEM 70→69.)
+(No sleeve ≥70 after moving Sentiment to positive-momentum; PLEM 70→69.)
 
-## TODO / pistes
+## TODO / ideas
 
-1. Remplacer les métriques estimées (`pb`, `epsGrowth`, `mom12m`, `speculation`, `geoRisk`)
-   par un **loader de données réelles** (API / CSV).
-2. GeoJSON plus fin si HK/Singapour doivent s'afficher.
-3. Option : layout radar mobile-first (2 colonnes).
-4. Garde-fou anti sur-ingénierie : toute modif du scoring reste pré-enregistrée et justifiée.
+1. Replace the estimated metrics (`pb`, `epsGrowth`, `mom12m`, `speculation`, `geoRisk`)
+   with a **real data loader** (API / CSV).
+2. Finer GeoJSON if HK/Singapore need to show.
+3. Option: mobile-first radar layout (2 columns).
+4. Anti over-engineering guardrail: any scoring change stays pre-registered and justified.

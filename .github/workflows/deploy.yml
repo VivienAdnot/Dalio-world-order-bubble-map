@@ -10,7 +10,7 @@ permissions:
   pages: write
   id-token: write
 
-# Un seul déploiement à la fois ; on annule les runs en cours obsolètes.
+# One deployment at a time; cancel stale in-progress runs.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -25,7 +25,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build # tsc && vite build -> dist/index.html (fichier unique)
+      - run: npm run build # tsc && vite build -> dist/index.html (single file)
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

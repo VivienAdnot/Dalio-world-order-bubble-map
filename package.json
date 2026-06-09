@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Dalio-style Bubble Gauge — 7 sleeves ETF géographiques Amundi PEA notés sur 6 facteurs (100 = attractif / peu de bulle), carte + radars + barres.",
+  "description": "Dalio-style Bubble Gauge — 7 geographic Amundi PEA ETF sleeves scored on 6 factors (100 = attractive / low bubble risk), map + radars + bars.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

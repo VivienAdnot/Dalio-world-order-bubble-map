@@ -1,10 +1,10 @@
 import type { BlockMetrics, Sleeve } from './types';
 
 // ─────────────────────────────────────────────────────────────────────────
-// Univers : 7 sleeves ETF géographiques Amundi PEA (1 ETF = 1 bloc).
-// `members` = pays ISO3 utilisés pour partitionner la carte choroplèthe.
-// Inde (PINR) découpée de PAEJ ; Chine reste dans PAEJ (pas de sleeve Chine).
-// Pour sortir la Chine : créer PASI { members: ['CHN'] } et retirer 'CHN' de PAEJ.
+// Universe: 7 geographic Amundi PEA ETF sleeves (1 ETF = 1 block).
+// `members` = ISO3 countries used to partition the choropleth map.
+// India (PINR) is split out of PAEJ; China stays in PAEJ (no China sleeve).
+// To break China out: create PASI { members: ['CHN'] } and remove 'CHN' from PAEJ.
 // ─────────────────────────────────────────────────────────────────────────
 export const SLEEVES: Record<string, Sleeve> = {
   PNAS: { label: 'USA', index: 'Nasdaq-100', members: ['USA'] },
@@ -16,13 +16,13 @@ export const SLEEVES: Record<string, Sleeve> = {
       'NLD', 'NOR', 'PRT', 'ESP', 'SWE', 'CHE', 'GBR',
     ],
   },
-  PTPXH: { label: 'Japon', index: 'Japon TOPIX', members: ['JPN'] },
+  PTPXH: { label: 'Japan', index: 'TOPIX', members: ['JPN'] },
   PAEJ: {
-    label: 'Asie-Pac ex-Japon',
+    label: 'Asia-Pac ex-Japan',
     index: 'MSCI AC Asia Pacific ex Japan',
     members: ['AUS', 'HKG', 'NZL', 'SGP', 'CHN', 'KOR', 'TWN', 'IDN', 'MYS', 'PHL', 'THA'],
   },
-  PINR: { label: 'Inde', index: 'MSCI India', members: ['IND'] },
+  PINR: { label: 'India', index: 'MSCI India', members: ['IND'] },
   PALAT: {
     label: 'LatAm',
     index: 'MSCI EM Latin America',
@@ -36,18 +36,18 @@ export const SLEEVES: Record<string, Sleeve> = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Métriques brutes (mid-2026). ÉDITER ICI pour mettre à jour les scores.
+// Raw metrics (mid-2026). EDIT HERE to update the scores.
 //
-// Sources & confiance :
-//   fwdPE     Siblis Research (P/E par pays au 31/12/2025, agrégés par sleeve = proxy)
-//   gdpGrowth FMI WEO (janv. + avr. 2026)
-//   debtToGDP FMI (dette publique brute représentative)
-//   pb / epsGrowth / mom12m  estimations à affiner
-//   speculation / geoRisk    0..1, dires d'analyste (geoRisk Golfe/EMEA relevé,
-//                            conflit Moyen-Orient, WEO avr. 2026)
+// Sources & confidence:
+//   fwdPE     Siblis Research (per-country P/E as of 2025-12-31, aggregated per sleeve = proxy)
+//   gdpGrowth IMF WEO (Jan + Apr 2026)
+//   debtToGDP IMF (representative gross public debt)
+//   pb / epsGrowth / mom12m  estimates to refine
+//   speculation / geoRisk    0..1, analyst judgement (geoRisk for Gulf/EMEA raised,
+//                            Middle East conflict, WEO Apr 2026)
 //
-// Maillons subjectifs : bornes des lin() (gauges.ts), speculation, geoRisk,
-// et le signe du Sentiment (momentum positif, non inversé). Le reste est mécanique.
+// Subjective inputs: the lin() bounds (gauges.ts), speculation, geoRisk,
+// and the sign of Sentiment (positive momentum, not inverted). The rest is mechanical.
 // ─────────────────────────────────────────────────────────────────────────
 export const RAW: Record<string, BlockMetrics> = {
   PNAS:  { fwdPE: 27.0, pb: 7.0, debtToGDP: 122, gdpGrowth: 2.0, epsGrowth: 16, speculation: 0.85, geoRisk: 0.35, mom12m: 22 },

@@ -1,8 +1,8 @@
 import type { EChartsOption } from 'echarts';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
-// ── Bandes de couleur ──────────────────────────────────────────────────────
-// 🟢 70–100 attractif · 🟡 40–69 risque modéré · 🔴 0–39 risque élevé
+// ── Colour bands ───────────────────────────────────────────────────────────
+// 🟢 70–100 attractive · 🟡 40–69 moderate risk · 🔴 0–39 high risk
 export interface Band {
   min: number;
   max: number;
@@ -11,12 +11,12 @@ export interface Band {
 }
 
 export const BANDS: Band[] = [
-  { min: 70, max: 100, color: '#3fb97a', label: 'Attractif' },
-  { min: 40, max: 69, color: '#e8b23a', label: 'Risque modéré' },
-  { min: 0, max: 39, color: '#e1495b', label: 'Risque élevé' },
+  { min: 70, max: 100, color: '#3fb97a', label: 'Attractive' },
+  { min: 40, max: 69, color: '#e8b23a', label: 'Moderate risk' },
+  { min: 0, max: 39, color: '#e1495b', label: 'High risk' },
 ];
 
-const NO_DATA = '#1e232b'; // gris « hors univers PEA »
+const NO_DATA = '#333b47'; // grey "outside PEA universe" — kept clearly lighter than the page bg (#0c0e12)
 
 const bandOf = (score: number): Band =>
   BANDS.find((b) => score >= b.min && score <= b.max) ?? BANDS[2];
@@ -24,17 +24,17 @@ const bandOf = (score: number): Band =>
 export const colorOf = (score: number): string => bandOf(score).color;
 
 export const FACTOR_LABELS: Record<Factor, string> = {
-  valuations: 'Valorisation',
-  debt: 'Dette',
-  growth: 'Croissance',
-  leverage: 'Levier/Spéc.',
-  geo: 'Géopolitique',
+  valuations: 'Valuation',
+  debt: 'Debt',
+  growth: 'Growth',
+  leverage: 'Leverage/Spec.',
+  geo: 'Geopolitics',
   sentiment: 'Sentiment',
 };
 
-// ── Carte ────────────────────────────────────────────────────────────────
-// Enregistre la géométrie monde sous un nom de carte ECharts ; copie
-// feature.id (ISO3) vers properties.iso3 pour le match `nameProperty`.
+// ── Map ──────────────────────────────────────────────────────────────────
+// Registers the world geometry under an ECharts map name; copies
+// feature.id (ISO3) to properties.iso3 for the `nameProperty` match.
 export function registerWorldMap(
   echarts: { registerMap: (name: string, geo: any) => void },
   geojson: { features: Array<{ id?: string; properties?: Record<string, unknown> }> },
@@ -80,7 +80,7 @@ export function buildMapOption(
       formatter: (p: any) => {
         const b = p.data?._b;
         if (!b)
-          return `<b>${p.name}</b><br/><span style="color:#838c99">Hors univers PEA</span>`;
+          return `<b>${p.name}</b><br/><span style="color:#838c99">Outside PEA universe</span>`;
         const c = colorOf(p.value);
         const rows = FACTOR_ORDER.map(
           (f) =>
@@ -117,7 +117,9 @@ export function buildMapOption(
         itemStyle: { areaColor: NO_DATA, borderColor: '#0b0d11', borderWidth: 0.6 },
         emphasis: {
           label: { show: false },
-          itemStyle: { borderColor: '#fff', borderWidth: 1.1 },
+          // keep each country's own band colour on hover (default ECharts
+          // highlight is gold, which collides with the moderate-risk yellow)
+          itemStyle: { areaColor: 'inherit', borderColor: '#fff', borderWidth: 1.1 },
         },
         data,
       },
@@ -125,7 +127,7 @@ export function buildMapOption(
   };
 }
 
-// ── Radar (7 sleeves superposés) ───────────────────────────────────────────
+// ── Radar (7 sleeves overlaid) ─────────────────────────────────────────────
 const RADAR_PALETTE = ['#5b8def', '#3fb97a', '#e8b23a', '#e1495b', '#9b6ef3', '#27c4c4', '#e98a3a'];
 
 export function buildRadarOption(blocks: BlockScore[]): EChartsOption {
@@ -160,7 +162,7 @@ export function buildRadarOption(blocks: BlockScore[]): EChartsOption {
   };
 }
 
-// ── Barres composites ──────────────────────────────────────────────────────
+// ── Composite bars ─────────────────────────────────────────────────────────
 export function buildBarOption(blocks: BlockScore[]): EChartsOption {
   const sorted = [...blocks].sort((a, b) => a.composite - b.composite);
   return {
@@ -201,11 +203,11 @@ export function buildBarOption(blocks: BlockScore[]): EChartsOption {
   };
 }
 
-// ── Profil radar (sleeve sélectionné vs moyenne des 7) ──────────────────────
+// ── Profile radar (selected sleeve vs the average of the 7) ─────────────────
 const PROFILE_AXIS_COLORS = ['#5b8def', '#e98a3a', '#3fb97a', '#9b6ef3', '#e1495b', '#27c4c4'];
 
 const bandLabel = (s: number): string =>
-  s >= 70 ? 'attractif' : s >= 40 ? 'risque modéré' : 'risque élevé';
+  s >= 70 ? 'attractive' : s >= 40 ? 'moderate risk' : 'high risk';
 
 export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): EChartsOption {
   const block = blocks[Math.max(0, Math.min(selected, blocks.length - 1))];
@@ -214,8 +216,8 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
     Math.round(blocks.reduce((acc, b) => acc + b.factors[f], 0) / blocks.length),
   );
 
-  // `nameGap` est accepté par ECharts au runtime mais absent de ses types radar :
-  // on passe par un const intermédiaire pour éviter le contrôle de propriété excédentaire.
+  // `nameGap` is accepted by ECharts at runtime but missing from its radar types:
+  // we go through an intermediate const to avoid the excess-property check.
   const option = {
     backgroundColor: 'transparent',
     title: {
@@ -231,7 +233,7 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
       bottom: 12,
       itemGap: 24,
       textStyle: { color: '#b6bdc8', fontSize: 12 },
-      data: [`${block.label} (${block.id})`, 'Moyenne 7 sleeves'],
+      data: [`${block.label} (${block.id})`, 'Average of 7 sleeves'],
     },
     tooltip: {
       trigger: 'item',
@@ -260,7 +262,7 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
     },
     series: [
       {
-        name: 'Moyenne 7 sleeves',
+        name: 'Average of 7 sleeves',
         type: 'radar',
         symbol: 'none',
         lineStyle: { color: '#9aa3b0', width: 1.5, type: 'dashed' },

@@ -10,13 +10,13 @@ import {
   registerWorldMap,
 } from './visuals';
 
-type View = 'map' | 'radar' | 'bar' | 'profils';
+type View = 'map' | 'radar' | 'bar' | 'profiles';
 
 registerWorldMap(echarts, worldGeo as any);
 
 const blocks = buildBlockScores();
 
-// Sleeve le plus attractif = sélection par défaut de l'onglet Profils.
+// Most attractive sleeve = default selection of the Profiles tab.
 let selected = 0;
 blocks.forEach((b, i) => {
   if (b.composite > blocks[selected].composite) selected = i;
@@ -28,7 +28,7 @@ const builders: Record<View, () => echarts.EChartsOption> = {
   map: () => buildMapOption(blocks),
   radar: () => buildRadarOption(blocks),
   bar: () => buildBarOption(blocks),
-  profils: () => buildProfileRadarOption(blocks, selected),
+  profiles: () => buildProfileRadarOption(blocks, selected),
 };
 
 let view: View = 'map';
@@ -38,7 +38,7 @@ function render(): void {
   chart.setOption(builders[view]());
 }
 
-// ── Sélecteur de sleeve (chips, visible sur l'onglet Profils) ───────────────
+// ── Sleeve selector (chips, visible on the Profiles tab) ────────────────────
 const sleeveSel = document.getElementById('sleeveSel') as HTMLElement;
 
 function setSelected(i: number): void {
@@ -52,7 +52,7 @@ blocks.forEach((b, i) => {
   chip.innerHTML = `<span class="d" style="background:${colorOf(b.composite)}"></span>${b.label} · ${b.composite}`;
   chip.addEventListener('click', () => {
     setSelected(i);
-    if (view === 'profils') {
+    if (view === 'profiles') {
       history.replaceState(null, '', hashFor());
       render();
     }
@@ -61,32 +61,32 @@ blocks.forEach((b, i) => {
   sleeveSel.appendChild(chip);
 });
 
-// ── Routage par ancre d'URL ────────────────────────────────────────────────
-// #carte→map · #radar→radar · #barres(|#barre)→bar · #profils(|#profil)→profils
-// #profils-<ticker> ouvre Profils sur un sleeve précis (ticker en minuscules).
+// ── URL-hash routing ───────────────────────────────────────────────────────
+// #map→map · #radar→radar · #bars(|#bar)→bar · #profiles(|#profile)→profiles
+// #profiles-<ticker> opens Profiles on a specific sleeve (lowercase ticker).
 const VIEW_TO_HASH: Record<View, string> = {
-  map: 'carte',
+  map: 'map',
   radar: 'radar',
-  bar: 'barres',
-  profils: 'profils',
+  bar: 'bars',
+  profiles: 'profiles',
 };
 
 function hashFor(): string {
-  if (view === 'profils') return `#profils-${blocks[selected].id.toLowerCase()}`;
+  if (view === 'profiles') return `#profiles-${blocks[selected].id.toLowerCase()}`;
   return `#${VIEW_TO_HASH[view]}`;
 }
 
 function parseHash(): { view: View; sleeve?: number } | null {
   const h = location.hash.replace(/^#/, '').toLowerCase();
   if (!h) return null;
-  if (h === 'carte') return { view: 'map' };
+  if (h === 'map') return { view: 'map' };
   if (h === 'radar') return { view: 'radar' };
-  if (h === 'barres' || h === 'barre') return { view: 'bar' };
-  if (h === 'profils' || h === 'profil') return { view: 'profils' };
-  const m = h.match(/^profils?-(.+)$/);
+  if (h === 'bars' || h === 'bar') return { view: 'bar' };
+  if (h === 'profiles' || h === 'profile') return { view: 'profiles' };
+  const m = h.match(/^profiles?-(.+)$/);
   if (m) {
     const idx = blocks.findIndex((b) => b.id.toLowerCase() === m[1]);
-    return { view: 'profils', sleeve: idx >= 0 ? idx : undefined };
+    return { view: 'profiles', sleeve: idx >= 0 ? idx : undefined };
   }
   return null;
 }
@@ -97,7 +97,7 @@ function activate(v: View, opts: { fromHash?: boolean; sleeve?: number } = {}): 
   document.querySelectorAll('.tab').forEach((el) =>
     el.classList.toggle('active', (el as HTMLElement).dataset.view === v),
   );
-  sleeveSel.style.display = v === 'profils' ? 'flex' : 'none';
+  sleeveSel.style.display = v === 'profiles' ? 'flex' : 'none';
   if (!opts.fromHash) history.replaceState(null, '', hashFor());
   render();
 }
@@ -113,7 +113,7 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('resize', () => chart.resize());
 
-// Vue initiale : ancre d'URL si présente, sinon la carte.
+// Initial view: URL hash if present, otherwise the map.
 const initial = parseHash();
 if (initial) activate(initial.view, { fromHash: true, sleeve: initial.sleeve });
 else activate('map', { fromHash: true });
