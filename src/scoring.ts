@@ -1,4 +1,4 @@
-import { RAW, SLEEVES, STAGES } from './data';
+import { MEMBERS, RAW, SLEEVES, STAGES } from './data';
 import { GAUGES, cycleStressSignal } from './gauges';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
@@ -34,6 +34,7 @@ export function buildBlockScores(): BlockScore[] {
       stage: stage?.stage ?? 1,
       stageNote: stage?.note ?? '',
       stageSignal: cycleStressSignal(metrics),
+      memberProfiles: MEMBERS[id] ?? [],
     };
   });
 }

@@ -41,6 +41,15 @@ export interface Sleeve {
   members: string[]; // ISO3
 }
 
+/** Key individual country inside a multi-country sleeve (surfaces within-block divergence). */
+export interface MemberProfile {
+  iso3: string;
+  name: string;
+  debtToGDP: number; // general govt gross debt, % GDP
+  gdpGrowth: number; // real GDP growth, %
+  archetype: string; // editorial: creditor / debtor / take-off / chronic / conflict …
+}
+
 /** Scoring output -> visuals input. */
 export interface BlockScore {
   id: string;
@@ -53,4 +62,5 @@ export interface BlockScore {
   stage: number; // Big Debt Cycle stage, 1 (soundest) .. 5 (going broke) — editorial
   stageNote: string; // editorial rationale for the stage
   stageSignal: number; // 1..5 heuristic stage from the debt/monetary-stress indicators
+  memberProfiles: MemberProfile[]; // key countries inside the block (empty for single-country sleeves)
 }

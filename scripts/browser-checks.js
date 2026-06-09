@@ -55,6 +55,16 @@
     return ok || `signals=${JSON.stringify(d.map((p) => p.stageSignal))}`;
   });
 
+  check('cycle: the 4 multi-country sleeves carry sourced member profiles', () => {
+    $('[data-view="cycle"]').click();
+    const d = window.__dalioChart.getOption().series[0].data;
+    const multi = d.filter((p) => (p.members || []).length > 0);
+    const ok = multi.length === 4 && multi.every((p) =>
+      p.members.length >= 4 && p.members.every((x) =>
+        x.name && typeof x.debtToGDP === 'number' && typeof x.gdpGrowth === 'number' && x.archetype));
+    return ok || `multi-country sleeves w/ members = ${multi.length}`;
+  });
+
   // ── Interaction: tabs switch the view and update the URL hash ─────────────
   check('clicking Bars activates the bar view and sets #bars', () => {
     $('[data-view="bar"]').click();

@@ -82,6 +82,21 @@ PNAS: { stage: 5, note: 'Late-empire Stage 5 — ~90–95% through the Big Cycle
   can't see). Don't tune the editorial stage just to match the signal.
 - Keep the `note` in sync with the metrics it cites.
 
+## 2c. Within-block members (`MEMBERS`)
+
+`MEMBERS` in `data.ts` lists the key individual countries inside each **multi-country** sleeve
+(PCEU, PAEJ, PALAT, PLEM — single-country sleeves have none), to surface the divergence a block
+average hides (creditor vs debtor, take-off vs chronic). Each member carries:
+
+- `debtToGDP` — IMF general-govt **gross** debt %GDP (2024–25). NB: IMF-gross differs from
+  national/Maastricht figures (e.g. Australia gross 51% vs net ~19%); keep the IMF-gross basis.
+- `gdpGrowth` — real %, 2025 actual (IMF WEO / national stats via Trading Economics).
+  (Taiwan is national-source — not in IMF WEO; its +8.7% is an AI/chip outlier.)
+- `archetype` — **editorial** one-liner (creditor / debtor / take-off / chronic / conflict…).
+
+Refresh `debtToGDP`/`gdpGrowth` from the same IMF/BIS cadence as `RAW`; re-judge `archetype`
+only on a regime shift. Members are **context** — they don't feed the composite or the signal.
+
 ## 3. How it redeploys
 
 GitHub Pages serves the **compiled** `dist/index.html` (ECharts inlined), **not**
