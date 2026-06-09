@@ -113,6 +113,14 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('resize', () => chart.resize());
 
+// Keyboard shortcuts: number keys 1–4 jump straight to a view (Map/Radar/Bars/Profiles).
+const KEY_TO_VIEW: Record<string, View> = { '1': 'map', '2': 'radar', '3': 'bar', '4': 'profiles' };
+window.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const v = KEY_TO_VIEW[e.key];
+  if (v) activate(v);
+});
+
 // Initial view: URL hash if present, otherwise the map.
 const initial = parseHash();
 if (initial) activate(initial.view, { fromHash: true, sleeve: initial.sleeve });
