@@ -40,9 +40,8 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   valuations: 'Valuation',
   debt: 'Debt',
   growth: 'Growth',
-  leverage: 'Leverage/Spec.',
+  euphoria: 'Euphoria',
   geo: 'Geopolitics',
-  sentiment: 'Sentiment',
 };
 
 // ── Big Debt Cycle track ───────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 Places the 7 geographic Amundi PEA ETF sleeves on **Ray Dalio's Big Debt Cycle**
 (*How Countries Go Broke: The Big Cycle*) — a **1–5 severity stage** per sleeve
-(1 Sound Money → 5 Going Broke) — while keeping a **6-factor attractiveness composite**
+(1 Sound Money → 5 Going Broke) — while keeping a **5-factor attractiveness composite**
 (0–100, *100 = attractive / low bubble risk*) **alongside** as a second lens. Visualised as
 a Cycle stage-track, a choropleth map, radars, bars, and per-sleeve profiles. Pure front-end
 (Vite + TypeScript + ECharts), no backend, no API key.

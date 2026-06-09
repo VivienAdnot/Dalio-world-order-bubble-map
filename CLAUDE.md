@@ -2,7 +2,7 @@
 
 Mini web app that places **7 geographic Amundi PEA ETF sleeves** on **Ray Dalio's Big Debt
 Cycle** (*How Countries Go Broke: The Big Cycle*) — a 1–5 severity stage per sleeve
-(1 Sound Money → 5 Going Broke). It keeps a **6-factor attractiveness composite** (0–100,
+(1 Sound Money → 5 Going Broke). It keeps a **5-factor attractiveness composite** (0–100,
 *100 = attractive / low bubble risk*) **alongside** the stage as a second lens. Views:
 a Cycle stage-track, choropleth map, radars, bars, per-sleeve profiles. Pure front-end,
 no backend, no API key.
@@ -43,7 +43,7 @@ npm run preview
 data.ts      SLEEVES (country->sleeve) + RAW (raw metrics/sleeve)
              + STAGES (per-sleeve cycle stage, editorial) + CYCLE_STAGES (the 5 stages)
    |
-gauges.ts    lin() + 6 scoring functions (raw -> 0..100) ; GAUGES map ; cycleStressSignal()
+gauges.ts    lin() + 5 scoring functions (raw -> 0..100) ; GAUGES map ; cycleStressSignal()
    |
 scoring.ts   WEIGHTS ; buildBlockScores() -> BlockScore[] (+ stage/stageNote) ; rankBlocks()
    |
@@ -152,7 +152,7 @@ keeps it cheap to carry), so the debt-*service* axis reads lower than the deleve
 editorial stage to match the signal (anti over-fitting); treat a widening gap as a prompt to
 re-examine.
 
-## Method: 6 factors (exact formulas)
+## Method: 5 factors (exact formulas)
 
 Common engine, bounded/clamped, `invert` for "less = better":
 
@@ -167,14 +167,16 @@ lin(v, lo, hi, invert=false):
 | 1 | valuations | `0.7·lin(fwdPE,8,30,inv) + 0.3·lin(pb,1,8,inv)` | expensive = low |
 | 2 | debt | `lin(debtToGDP,40,160,inv)` | high debt/GDP = low |
 | 3 | growth | `0.5·lin(gdpGrowth,0,7) + 0.5·lin(epsGrowth,0,18)` | more = better |
-| 4 | leverage | `lin(speculation,0,1,inv)` | euphoria = low |
+| 4 | euphoria | `0.6·lin(speculation,0,1,inv) + 0.4·lin(mom12m,-10,35,inv)` | froth (speculation + momentum) = low |
 | 5 | geo | `lin(geoRisk,0,1,inv)` | high risk = low |
-| 6 | sentiment | `lin(mom12m,-10,35)` | positive momentum (trend / Antonacci) |
 
-**Composite** = `round(0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.10·Leverage + 0.10·Geo + 0.05·Sentiment)`.
+**Composite** = `round(0.30·Valuation + 0.25·Debt + 0.20·Growth + 0.15·Euphoria + 0.10·Geo)`.
 
-> ⚠️ Modelling choice: Sentiment is **NOT** inverted (strong recent rise = high
-> score, trend logic). To treat it as euphoria, set `invert=true` in `scoreSentiment`.
+> ⚠️ Modelling choice: **Euphoria** folds the old *Leverage* (speculation) and *Sentiment*
+> (momentum) factors into one. Momentum is **inverted** — for a Dalio bubble gauge, strong
+> momentum is "extrapolating the past" (a bubble warning), so high momentum *lowers* the
+> score. (The original app treated momentum as a positive, trend/Antonacci signal — flipped
+> here to fit the bubble-detector framing. `mom12m` & `speculation` remain raw inputs.)
 
 ## Current raw data (`RAW`, mid-2026)
 
@@ -206,25 +208,25 @@ BIS / central banks, 2024–mid-2026; `internalConflict` is judgement. See
 aggregated per sleeve = proxy); `gdpGrowth` (IMF WEO Jan + Apr 2026); `debtToGDP` (IMF,
 representative gross public debt); `pb`/`epsGrowth`/`mom12m` = estimates to refine;
 `speculation`/`geoRisk` = **0..1, analyst judgement** (geoRisk for Gulf/EMEA raised after
-the Middle East conflict, WEO Apr 2026). The 4 subjective inputs = the `lin()` bounds,
-`speculation`, `geoRisk`, the sign of Sentiment. The rest is mechanical/reproducible.
+the Middle East conflict, WEO Apr 2026). The subjective inputs = the `lin()` bounds,
+`speculation`, `geoRisk`, and the Euphoria momentum inversion. The rest is mechanical/reproducible.
 
 ## Current ranking (computed, mid-2026)
 
 | Rank | Ticker | Composite | Big Debt Cycle stage |
 |---|---|---|---|
-| 1 | PLEM | 69 | 5 · Going Broke |
-| 2 | PALAT | 68 | 4 · Deleveraging |
-| 3 | PAEJ | 65 | 3 · The Top |
-| 4 | PCEU | 57 | 5 · Going Broke |
-| 5 | PINR | 56 | 2 · Debt Bubble |
-| 6 | PTPXH | 44 | 4 · Deleveraging |
-| 7 | PNAS | 36 | 5 · Going Broke |
+| 1 | PALAT | 69 | 4 · Deleveraging |
+| 2 | PLEM | 69 | 5 · Going Broke |
+| 3 | PAEJ | 64 | 3 · The Top |
+| 4 | PINR | 58 | 2 · Debt Bubble |
+| 5 | PCEU | 57 | 5 · Going Broke |
+| 6 | PTPXH | 43 | 4 · Deleveraging |
+| 7 | PNAS | 34 | 5 · Going Broke |
 
-Ranked by composite (high = attractive). Note the two lenses can diverge: e.g. **PNAS/USA**
-ranks last on the composite *and* sits at stage 5; **PLEM/EM-EMEA** tops the composite yet is
-stage 5 (cheap, but late-cycle conflict). (No sleeve ≥70 after moving Sentiment to
-positive-momentum; PLEM 70→69.)
+Ranked by composite (high = attractive). The two lenses diverge: **PALAT/PLEM** top the
+composite (cheap, low froth) yet sit at stage 4–5; **PNAS/USA** is last on the composite *and*
+at stage 5. (After the Euphoria refactor, momentum is a froth *penalty*: high-momentum
+USA/Asia-Pac eased down, low-momentum India edged above Europe. No sleeve ≥70.)
 
 ## TODO / ideas
 

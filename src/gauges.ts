@@ -25,15 +25,15 @@ export const scoreDebt = (m: BlockMetrics): number => lin(m.debtToGDP, 40, 160, 
 export const scoreGrowth = (m: BlockMetrics): number =>
   Math.round(0.5 * lin(m.gdpGrowth, 0, 7) + 0.5 * lin(m.epsGrowth, 0, 18));
 
-// 4. Leverage / Speculation — euphoria = low
-export const scoreLeverage = (m: BlockMetrics): number => lin(m.speculation, 0, 1, true);
+// 4. Euphoria / froth — speculation + extrapolative momentum; euphoria = LOW score.
+//    For a Dalio bubble gauge, strong momentum is "extrapolating the past" (a bubble
+//    warning), so it is INVERTED here. Folds the old Leverage (speculation) and Sentiment
+//    (momentum) factors into one — both are froth signals; kept apart they'd double-count.
+export const scoreEuphoria = (m: BlockMetrics): number =>
+  Math.round(0.6 * lin(m.speculation, 0, 1, true) + 0.4 * lin(m.mom12m, -10, 35, true));
 
 // 5. Geopolitics — high risk = low
 export const scoreGeo = (m: BlockMetrics): number => lin(m.geoRisk, 0, 1, true);
-
-// 6. Sentiment — POSITIVE momentum, NOT inverted (strong recent rise = high score,
-//    trend / Antonacci logic). To treat it as euphoria, pass invert=true.
-export const scoreSentiment = (m: BlockMetrics): number => lin(m.mom12m, -10, 35);
 
 /**
  * Heuristic Big Debt Cycle "signal" — a transparent, equal-weighted debt/monetary-
@@ -64,7 +64,6 @@ export const GAUGES: Record<Factor, (m: BlockMetrics) => number> = {
   valuations: scoreValuations,
   debt: scoreDebt,
   growth: scoreGrowth,
-  leverage: scoreLeverage,
+  euphoria: scoreEuphoria,
   geo: scoreGeo,
-  sentiment: scoreSentiment,
 };
