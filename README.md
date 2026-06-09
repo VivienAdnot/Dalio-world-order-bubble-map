@@ -1,8 +1,10 @@
 # Dalio-world-order-bubble-map
 
-Dalio-style **Bubble Gauge** for the 7 geographic Amundi PEA ETF sleeves. Each sleeve is
-scored 0–100 on 6 factors (**100 = attractive / low bubble risk**), ranked, coloured, and
-visualised as a choropleth map, radars, and a composite bar chart. Pure front-end
+Places the 7 geographic Amundi PEA ETF sleeves on **Ray Dalio's Big Debt Cycle**
+(*How Countries Go Broke: The Big Cycle*) — a **1–5 severity stage** per sleeve
+(1 Sound Money → 5 Going Broke) — while keeping a **6-factor attractiveness composite**
+(0–100, *100 = attractive / low bubble risk*) **alongside** as a second lens. Visualised as
+a Cycle stage-track, a choropleth map, radars, bars, and per-sleeve profiles. Pure front-end
 (Vite + TypeScript + ECharts), no backend, no API key.
 
 **Live:** https://vivienadnot.github.io/Dalio-world-order-bubble-map/
@@ -27,11 +29,11 @@ is committed. Full step-by-step in [`docs/refreshing-the-data.md`](./docs/refres
 |---|---|
 | `index.html` | Vite source entry (edit this) |
 | `.github/workflows/deploy.yml` | builds + deploys `dist/` to Pages on push to `main` |
-| `src/data.ts` | `SLEEVES` (country→sleeve) + `RAW` (raw metrics) — **the data layer** |
+| `src/data.ts` | `SLEEVES` (country→sleeve) + `RAW` (raw metrics) + `STAGES`/`CYCLE_STAGES` (editorial Big Debt Cycle stage) — **the data layer** |
 | `src/gauges.ts` | `lin()` + the 6 scoring functions |
 | `src/scoring.ts` | `WEIGHTS`, `buildBlockScores()`, `rankBlocks()` |
-| `src/visuals.ts` | pure ECharts option builders (map / radar / bar / profile) |
-| `src/main.ts` | ECharts init, 4 tabs, URL-hash routing, sleeve selector |
+| `src/visuals.ts` | pure ECharts option builders (cycle / map / radar / bar / profile) + `stageColor`/`stageName` |
+| `src/main.ts` | ECharts init, 5 tabs, URL-hash routing, sleeve selector, keyboard 1–5 |
 | `src/types.ts` | shared contract |
 | `src/world.geo.json` | world geometry, `id` = ISO3 (source: johan/world.geo.json) |
 | `scripts/browser-checks.js` | the browser assertions — single source of truth (see below) |
@@ -44,8 +46,9 @@ data sources, and the current ranking).
 
 ## URL anchors
 
-`#map` · `#radar` · `#bars` · `#profiles` open a given tab; `#profiles-<ticker>`
-(lowercase, e.g. `#profiles-plem`) opens the Profiles tab on a specific sleeve.
+`#cycle` · `#map` · `#radar` · `#bars` · `#profiles` open a given tab; `#profiles-<ticker>`
+(lowercase, e.g. `#profiles-plem`) opens the Profiles tab on a specific sleeve. Number-row
+keys **1–5** switch tabs (layout-agnostic, incl. AZERTY).
 
 ## Browser checks (feedback loop)
 
