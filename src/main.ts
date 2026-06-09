@@ -3,6 +3,7 @@ import worldGeo from './world.geo.json';
 import { buildBlockScores } from './scoring';
 import {
   buildBarOption,
+  buildCycleOption,
   buildMapOption,
   buildProfileRadarOption,
   buildRadarOption,
@@ -10,7 +11,7 @@ import {
   registerWorldMap,
 } from './visuals';
 
-type View = 'map' | 'radar' | 'bar' | 'profiles';
+type View = 'cycle' | 'map' | 'radar' | 'bar' | 'profiles';
 
 registerWorldMap(echarts, worldGeo as any);
 
@@ -29,13 +30,14 @@ const chart = echarts.init(document.getElementById('chart'), undefined, { render
 (window as unknown as { __dalioChart?: echarts.ECharts }).__dalioChart = chart;
 
 const builders: Record<View, () => echarts.EChartsOption> = {
+  cycle: () => buildCycleOption(blocks),
   map: () => buildMapOption(blocks),
   radar: () => buildRadarOption(blocks),
   bar: () => buildBarOption(blocks),
   profiles: () => buildProfileRadarOption(blocks, selected),
 };
 
-let view: View = 'map';
+let view: View = 'cycle';
 
 // Name of the sleeve currently isolated on the radar legend (null = show all).
 let radarSolo: string | null = null;
@@ -83,9 +85,10 @@ blocks.forEach((b, i) => {
 });
 
 // ── URL-hash routing ───────────────────────────────────────────────────────
-// #map→map · #radar→radar · #bars(|#bar)→bar · #profiles(|#profile)→profiles
+// #cycle→cycle · #map→map · #radar→radar · #bars(|#bar)→bar · #profiles(|#profile)→profiles
 // #profiles-<ticker> opens Profiles on a specific sleeve (lowercase ticker).
 const VIEW_TO_HASH: Record<View, string> = {
+  cycle: 'cycle',
   map: 'map',
   radar: 'radar',
   bar: 'bars',
@@ -100,6 +103,7 @@ function hashFor(): string {
 function parseHash(): { view: View; sleeve?: number } | null {
   const h = location.hash.replace(/^#/, '').toLowerCase();
   if (!h) return null;
+  if (h === 'cycle') return { view: 'cycle' };
   if (h === 'map') return { view: 'map' };
   if (h === 'radar') return { view: 'radar' };
   if (h === 'bars' || h === 'bar') return { view: 'bar' };
@@ -134,14 +138,15 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('resize', () => chart.resize());
 
-// Keyboard shortcuts: number-row keys 1–4 jump straight to a view (Map/Radar/Bars/Profiles).
+// Keyboard shortcuts: number-row keys 1–5 jump straight to a view.
 // Keyed off physical position (e.code) so it works on any layout without Shift —
-// e.g. French AZERTY, where the unshifted top row yields "& é " '" rather than digits.
+// e.g. French AZERTY, where the unshifted top row yields "& é " ' (" rather than digits.
 const CODE_TO_VIEW: Record<string, View> = {
-  Digit1: 'map',
-  Digit2: 'radar',
-  Digit3: 'bar',
-  Digit4: 'profiles',
+  Digit1: 'cycle',
+  Digit2: 'map',
+  Digit3: 'radar',
+  Digit4: 'bar',
+  Digit5: 'profiles',
 };
 window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -149,7 +154,7 @@ window.addEventListener('keydown', (e) => {
   if (v) activate(v);
 });
 
-// Initial view: URL hash if present, otherwise the map.
+// Initial view: URL hash if present, otherwise the Big Debt Cycle overview.
 const initial = parseHash();
 if (initial) activate(initial.view, { fromHash: true, sleeve: initial.sleeve });
-else activate('map', { fromHash: true });
+else activate('cycle', { fromHash: true });
