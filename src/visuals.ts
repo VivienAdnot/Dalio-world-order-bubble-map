@@ -70,6 +70,7 @@ export function buildCycleOption(blocks: BlockScore[]): EChartsOption {
       stageNum: b.stage,
       stageSignal: b.stageSignal,
       m: b.metrics,
+      members: b.memberProfiles,
       itemStyle: { color: stageColor(b.stage) },
       label: {
         show: true,
@@ -115,10 +116,20 @@ export function buildCycleOption(blocks: BlockScore[]): EChartsOption {
               `<div style="display:flex;justify-content:space-between;gap:16px;font-size:11px;color:#838c99"><span>${k}</span><span style="color:#e9ecf1">${v}</span></div>`,
           )
           .join('');
+        const mem = p.data.members || [];
+        const memberRows = mem.length
+          ? `<div style="font-size:10px;color:#5a626e;margin-top:9px;margin-bottom:3px">Within the block (debt%GDP · growth)</div>` +
+            mem
+              .map(
+                (x: any) =>
+                  `<div style="display:flex;justify-content:space-between;gap:14px;font-size:10.5px;color:#838c99"><span>${x.name} <span style="color:#5a626e">${x.archetype}</span></span><span style="color:#e9ecf1;white-space:nowrap">${x.debtToGDP}% · ${x.gdpGrowth > 0 ? '+' : ''}${x.gdpGrowth}%</span></div>`,
+              )
+              .join('')
+          : '';
         return (
           `<div style="min-width:230px"><b style="font-size:14px">${p.name}</b> · Stage ${ed}` +
           `<div style="font-size:10.5px;color:#5a626e;margin-bottom:8px">data signal → stage ${sig}${sig !== ed ? ' (diverges)' : ''}</div>` +
-          `${indicators}<div style="font-size:10.5px;color:#8a929e;margin-top:8px;white-space:normal">${p.data.stageNote}</div></div>`
+          `${indicators}<div style="font-size:10.5px;color:#8a929e;margin-top:8px;white-space:normal">${p.data.stageNote}</div>${memberRows}</div>`
         );
       },
     },
@@ -332,6 +343,14 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
     Math.round(blocks.reduce((acc, b) => acc + b.factors[f], 0) / blocks.length),
   );
 
+  // Within-block member readout (top-left): the key countries inside this sleeve.
+  const memberText = block.memberProfiles.length
+    ? `WITHIN — debt%GDP / growth\n`
+      + block.memberProfiles
+          .map((x) => `${x.name}   ${x.debtToGDP}% / ${x.gdpGrowth > 0 ? '+' : ''}${x.gdpGrowth}%`)
+          .join('\n')
+    : '';
+
   // `nameGap` is accepted by ECharts at runtime but missing from its radar types:
   // we go through an intermediate const to avoid the excess-property check.
   const option = {
@@ -348,6 +367,23 @@ export function buildProfileRadarOption(blocks: BlockScore[], selected = 0): ECh
       textStyle: { color: stageColor(block.stage), fontSize: 22, fontWeight: 700, fontFamily: 'monospace' },
       subtextStyle: { color: '#838c99', fontSize: 11, fontFamily: 'monospace' },
     },
+    graphic: memberText
+      ? [
+          {
+            type: 'text',
+            left: 28,
+            top: 246,
+            z: 10,
+            style: {
+              text: memberText,
+              fill: '#8a929e',
+              fontSize: 11,
+              lineHeight: 17,
+              fontFamily: 'IBM Plex Mono, monospace',
+            },
+          },
+        ]
+      : [],
     legend: {
       bottom: 12,
       itemGap: 24,

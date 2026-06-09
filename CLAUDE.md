@@ -42,6 +42,7 @@ npm run preview
 ```
 data.ts      SLEEVES (country->sleeve) + RAW (raw metrics/sleeve)
              + STAGES (per-sleeve cycle stage, editorial) + CYCLE_STAGES (the 5 stages)
+             + MEMBERS (key individual countries inside each multi-country sleeve)
    |
 gauges.ts    lin() + 5 scoring functions (raw -> 0..100) ; GAUGES map ; cycleStressSignal()
    |
@@ -151,6 +152,18 @@ keeps it cheap to carry), so the debt-*service* axis reads lower than the deleve
 **Brazil** (ed 4 / sig 2): a +10% real rate reads as hard money, not stress. Don't tune the
 editorial stage to match the signal (anti over-fitting); treat a widening gap as a prompt to
 re-examine.
+
+### Within-block divergence (`MEMBERS`)
+
+A block can't go broke — only its sovereigns can — and a 7-ETF universe is coarser than
+Dalio's country-level work. So `data.ts → MEMBERS` carries the key individual countries inside
+each **multi-country** sleeve (PCEU, PAEJ, PALAT, PLEM; single-country sleeves have none), with
+sourced `debtToGDP` + `gdpGrowth` (IMF gross / 2025 real growth) and an editorial `archetype`.
+This surfaces the splits a block average hides — creditor **Germany** (64% / +0.2%) vs debtor
+**Italy** (137% / +0.5%); take-off **Saudi/UAE** vs troubled **South Africa**; neutral
+high-growth **Indonesia** buried in China-dominated PAEJ. Shown in the **Cycle tooltip** (full,
+with archetypes) and a **Profiles** top-left readout. The stage stays a dominant-country call;
+`MEMBERS` is the context that keeps the coarseness honest.
 
 ## Method: 5 factors (exact formulas)
 

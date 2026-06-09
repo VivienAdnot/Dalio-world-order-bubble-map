@@ -1,4 +1,4 @@
-import type { BlockMetrics, Sleeve } from './types';
+import type { BlockMetrics, MemberProfile, Sleeve } from './types';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Universe: 7 geographic Amundi PEA ETF sleeves (1 ETF = 1 block).
@@ -92,6 +92,47 @@ export const CYCLE_STAGES: StageMeta[] = [
   { stage: 4, name: 'Deleveraging', blurb: 'Painful workout to bring debt and debt service back in line with income.', color: '#e07b2e' },
   { stage: 5, name: 'Going Broke',  blurb: 'Crisis climax: money-printing, devaluation, internal & external conflict.', color: '#e1495b' },
 ];
+
+// ─────────────────────────────────────────────────────────────────────────
+// Within-block divergence — key individual countries inside the multi-country
+// sleeves. A "block" can't go broke; only its sovereigns can, and Dalio analyses
+// them individually (creditor Germany vs debtor Italy; take-off Saudi/UAE vs
+// troubled Turkey/South Africa; China's bust vs neutral high-growth Indonesia).
+// debtToGDP = IMF general-govt GROSS debt %GDP (2024–25); gdpGrowth = real %,
+// 2025 actual (IMF WEO / national stats via Trading Economics). archetype = editorial.
+// Single-country sleeves (PNAS/PTPXH/PINR) have no members listed.
+// Caveats: figures are IMF-gross basis (differs from national/Maastricht); Taiwan is
+// national-source (not in IMF WEO); its +8.7% growth is an AI/chip outlier, not structural.
+// ─────────────────────────────────────────────────────────────────────────
+export const MEMBERS: Record<string, MemberProfile[]> = {
+  PCEU: [
+    { iso3: 'DEU', name: 'Germany',     debtToGDP: 64,  gdpGrowth: 0.2, archetype: 'creditor · low debt' },
+    { iso3: 'NLD', name: 'Netherlands', debtToGDP: 44,  gdpGrowth: 1.9, archetype: 'creditor · low debt' },
+    { iso3: 'ESP', name: 'Spain',       debtToGDP: 100, gdpGrowth: 2.8, archetype: 'recovering · high growth' },
+    { iso3: 'FRA', name: 'France',      debtToGDP: 117, gdpGrowth: 0.9, archetype: 'debtor · record-high debt' },
+    { iso3: 'ITA', name: 'Italy',       debtToGDP: 137, gdpGrowth: 0.5, archetype: 'debtor · high debt' },
+  ],
+  PAEJ: [
+    { iso3: 'CHN', name: 'China',       debtToGDP: 96,  gdpGrowth: 5.0, archetype: 'debt bust + US conflict (dominant)' },
+    { iso3: 'KOR', name: 'South Korea', debtToGDP: 55,  gdpGrowth: 1.0, archetype: 'slowing' },
+    { iso3: 'TWN', name: 'Taiwan',      debtToGDP: 29,  gdpGrowth: 8.7, archetype: 'chip boom · conflict-exposed' },
+    { iso3: 'AUS', name: 'Australia',   debtToGDP: 51,  gdpGrowth: 2.6, archetype: 'steady' },
+    { iso3: 'IDN', name: 'Indonesia',   debtToGDP: 40,  gdpGrowth: 5.1, archetype: 'neutral · take-off' },
+  ],
+  PALAT: [
+    { iso3: 'BRA', name: 'Brazil',      debtToGDP: 91,  gdpGrowth: 2.3, archetype: 'high debt · +10% real rate (dominant)' },
+    { iso3: 'MEX', name: 'Mexico',      debtToGDP: 59,  gdpGrowth: 1.0, archetype: 'near-stall' },
+    { iso3: 'COL', name: 'Colombia',    debtToGDP: 59,  gdpGrowth: 2.6, archetype: 'steady growth' },
+    { iso3: 'CHL', name: 'Chile',       debtToGDP: 42,  gdpGrowth: 2.5, archetype: 'steady · low debt' },
+  ],
+  PLEM: [
+    { iso3: 'SAU', name: 'Saudi Arabia', debtToGDP: 30, gdpGrowth: 4.5, archetype: 'take-off · strong balance sheet' },
+    { iso3: 'ARE', name: 'UAE',          debtToGDP: 33, gdpGrowth: 5.6, archetype: 'take-off · strong balance sheet' },
+    { iso3: 'POL', name: 'Poland',       debtToGDP: 60, gdpGrowth: 3.6, archetype: 'EU growth leader' },
+    { iso3: 'TUR', name: 'Turkey',       debtToGDP: 27, gdpGrowth: 3.6, archetype: 'low debt, FX-denominated risk' },
+    { iso3: 'ZAF', name: 'South Africa', debtToGDP: 77, gdpGrowth: 1.1, archetype: 'DM-style debt/deficit problems' },
+  ],
+};
 
 export const STAGES: Record<string, { stage: number; note: string }> = {
   PNAS: {
