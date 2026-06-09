@@ -58,3 +58,57 @@ export const RAW: Record<string, BlockMetrics> = {
   PALAT: { fwdPE: 10.0, pb: 1.6, debtToGDP: 75,  gdpGrowth: 2.0, epsGrowth: 9,  speculation: 0.25, geoRisk: 0.45, mom12m: 9  },
   PLEM:  { fwdPE: 11.0, pb: 1.6, debtToGDP: 50,  gdpGrowth: 3.0, epsGrowth: 8,  speculation: 0.40, geoRisk: 0.75, mom12m: 10 },
 };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Big Debt Cycle — Ray Dalio, "How Countries Go Broke: The Big Cycle".
+// A severity gauge of where each market sits in the cycle:
+//   1 Sound Money  →  2 Debt Bubble  →  3 The Top  →  4 Deleveraging  →  5 Going Broke
+// The cycle is a loop: stage 5's crisis eventually recedes and resets to stage 1.
+// These are EDITORIAL, hand-assigned per sleeve from Dalio's framework — they are
+// NOT derived from RAW. Edit `stage`/`note` here to re-stage a sleeve.
+// ─────────────────────────────────────────────────────────────────────────
+export interface StageMeta {
+  stage: number;
+  name: string;
+  blurb: string;
+  color: string; // green (sound) → red (going broke)
+}
+
+export const CYCLE_STAGES: StageMeta[] = [
+  { stage: 1, name: 'Sound Money',  blurb: 'Low debt, hard money, productivity-led growth.',                         color: '#2fa36b' },
+  { stage: 2, name: 'Debt Bubble',  blurb: 'Cheap money; debt & investment outrun the incomes that service them.',   color: '#8bbf3c' },
+  { stage: 3, name: 'The Top',      blurb: 'The bubble pops — debt, credit, markets and the economy contract.',       color: '#e8b23a' },
+  { stage: 4, name: 'Deleveraging', blurb: 'Painful workout to bring debt and debt service back in line with income.', color: '#e07b2e' },
+  { stage: 5, name: 'Going Broke',  blurb: 'Crisis climax: money-printing, devaluation, internal & external conflict.', color: '#e1495b' },
+];
+
+export const STAGES: Record<string, { stage: number; note: string }> = {
+  PNAS: {
+    stage: 5,
+    note: 'Late-empire Stage 5 — Dalio puts the US ~90–95% through its Big Cycle. An AI-era asset bubble (speculation 0.85, fwd P/E 27) sits atop 122% debt/GDP, with internal polarization and great-power conflict at extremes.',
+  },
+  PTPXH: {
+    stage: 4,
+    note: 'Deep in deleveraging — 250% debt/GDP, the BoJ holds bonds worth >90% of GDP to pin rates. Decades of monetization; "deleveraged" in dollar/gold terms via devaluation, but exposed to any rise in real rates.',
+  },
+  PINR: {
+    stage: 2,
+    note: 'Take-off (Stage 1→2) — shifting from sound money into an early debt-financed expansion. Strong fundamentals, 6%+ growth and geopolitically neutral; 83% debt still manageable vs its growth.',
+  },
+  PAEJ: {
+    stage: 3,
+    note: 'At the Top, bursting (Stage 3→4) — China-led: the 2021 property bubble popped and is feeding into deleveraging (real-estate + local-government debt). Intensifying US–China tech war (geoRisk 0.60).',
+  },
+  PCEU: {
+    stage: 5,
+    note: 'Weak-empire Stage 5 — high debt (90%), stagnant growth (1.3%). Unified monetary policy but no unified fiscal policy → "ugly deleveraging" risk where members (Greece/Italy/France) cannot print to service debt.',
+  },
+  PLEM: {
+    stage: 5,
+    note: 'Conflict-driven Stage 5 — debt is lower (~50%) but external geopolitical risk is extreme (geoRisk 0.75) after Middle East conflict. Fast-shifting alliances are a hallmark of the late Big Cycle.',
+  },
+  PALAT: {
+    stage: 4,
+    note: 'Chronic Stage 4–5 — persistent deficits and low investor confidence (fwd P/E 10). Recurring debt limits papered over with accounting tricks and guarantees; Brazil is Dalio\'s classic case.',
+  },
+};

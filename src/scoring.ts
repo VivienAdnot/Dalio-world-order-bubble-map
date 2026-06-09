@@ -1,4 +1,4 @@
-import { RAW, SLEEVES } from './data';
+import { RAW, SLEEVES, STAGES } from './data';
 import { GAUGES } from './gauges';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
 
@@ -22,6 +22,7 @@ export function buildBlockScores(): BlockScore[] {
     const composite = Math.round(
       FACTOR_ORDER.reduce((acc, f) => acc + factors[f] * WEIGHTS[f], 0),
     );
+    const stage = STAGES[id];
     return {
       id,
       label: sleeve.label,
@@ -29,6 +30,8 @@ export function buildBlockScores(): BlockScore[] {
       members: sleeve.members,
       factors,
       composite,
+      stage: stage?.stage ?? 1,
+      stageNote: stage?.note ?? '',
     };
   });
 }

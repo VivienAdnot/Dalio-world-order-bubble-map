@@ -22,18 +22,27 @@
   const activeView = () => $('.tab.active')?.dataset.view;
 
   // ── Smoke: the page mounted and the chart painted ─────────────────────────
-  check('page title is the Bubble Gauge', () =>
-    document.title.includes('Bubble Gauge') || `title was "${document.title}"`);
+  check('page title names the Big Debt Cycle', () =>
+    document.title.includes('Big Debt Cycle') || `title was "${document.title}"`);
 
-  check('four view tabs are present', () =>
-    $$('.tab').length === 4 || `found ${$$('.tab').length} tabs`);
+  check('five view tabs are present (Cycle + Map/Radar/Bars/Profiles)', () =>
+    $$('.tab').length === 5 || `found ${$$('.tab').length} tabs`);
 
-  check('Map is the default active tab', () =>
-    activeView() === 'map' || `active tab was "${activeView()}"`);
+  check('Cycle is the default active tab', () =>
+    activeView() === 'cycle' || `active tab was "${activeView()}"`);
 
   check('ECharts canvas painted with non-zero size', () => {
     const c = $('#chart canvas');
     return (c && c.width > 0 && c.height > 0) || `canvas was ${c ? `${c.width}x${c.height}` : 'absent'}`;
+  });
+
+  // ── Cycle view: 7 sleeves placed on the 5-stage track ─────────────────────
+  check('cycle: 7 sleeves placed across the 5 Big-Cycle stages', () => {
+    $('[data-view="cycle"]').click();
+    const o = window.__dalioChart.getOption();
+    const stages = o.xAxis && o.xAxis[0] && o.xAxis[0].data.length;
+    const pts = o.series && o.series[0] && o.series[0].data.length;
+    return (stages === 5 && pts === 7) || `stages=${stages} points=${pts}`;
   });
 
   // ── Interaction: tabs switch the view and update the URL hash ─────────────
@@ -113,26 +122,27 @@
       || `grid.top=${gridTop} headerBottom=${Math.round(headerBottom)}`;
   });
 
-  // ── Keyboard shortcuts: number-row keys 1–4 select the four views ─────────
+  // ── Keyboard shortcuts: number-row keys 1–5 select the five views ─────────
   // Must work by physical key position (e.code), not the character produced —
-  // on a French AZERTY layout the top row yields "& é " '" unless Shift is held,
-  // so a layout-agnostic shortcut keys off Digit1–Digit4. These checks simulate
+  // on a French AZERTY layout the top row yields "& é " ' (" unless Shift is held,
+  // so a layout-agnostic shortcut keys off Digit1–Digit5. These checks simulate
   // an AZERTY press: physical Digit key, non-digit character, no Shift.
-  check('physical "2" key selects Radar (AZERTY: yields "é", no Shift)', () => {
-    $('[data-view="map"]').click(); // start from a known view
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit2', key: 'é', bubbles: true }));
-    return activeView() === 'radar' || `active tab was "${activeView()}" after physical "2"`;
+  // Mapping: 1 Cycle · 2 Map · 3 Radar · 4 Bars · 5 Profiles.
+  check('physical "3" key selects Radar (AZERTY: yields """, no Shift)', () => {
+    $('[data-view="cycle"]').click(); // start from a known view
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit3', key: '"', bubbles: true }));
+    return activeView() === 'radar' || `active tab was "${activeView()}" after physical "3"`;
   });
 
-  check('physical "4" key selects Profiles and reveals chips (AZERTY: yields "\'")', () => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit4', key: "'", bubbles: true }));
+  check('physical "5" key selects Profiles and reveals chips (AZERTY: yields "(")', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit5', key: '(', bubbles: true }));
     const chips = $('#sleeveSel').querySelectorAll('.chip').length;
     return (activeView() === 'profiles' && chips > 0)
-      || `active="${activeView()}" chips=${chips} after physical "4"`;
+      || `active="${activeView()}" chips=${chips} after physical "5"`;
   });
 
-  // Leave the page on the map so screenshots after a run are predictable.
-  $('[data-view="map"]').click();
+  // Leave the page on the cycle overview so screenshots after a run are predictable.
+  $('[data-view="cycle"]').click();
 
   const passed = results.filter((r) => r.ok).length;
   return { passed, failed: results.length - passed, results };

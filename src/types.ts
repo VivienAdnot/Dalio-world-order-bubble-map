@@ -44,4 +44,6 @@ export interface BlockScore {
   members: string[]; // ISO3
   factors: Record<Factor, number>; // 0..100
   composite: number; // 0..100
+  stage: number; // Big Debt Cycle stage, 1 (soundest) .. 5 (going broke)
+  stageNote: string; // editorial rationale for the stage
 }

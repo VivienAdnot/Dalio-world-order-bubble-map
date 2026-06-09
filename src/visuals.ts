@@ -1,5 +1,10 @@
 import type { EChartsOption } from 'echarts';
+import { CYCLE_STAGES } from './data';
 import { FACTOR_ORDER, type BlockScore, type Factor } from './types';
+
+const STAGE_BY_NUM = new Map(CYCLE_STAGES.map((s) => [s.stage, s]));
+export const stageColor = (stage: number): string =>
+  (STAGE_BY_NUM.get(stage) ?? CYCLE_STAGES[CYCLE_STAGES.length - 1]).color;
 
 // ── Colour bands ───────────────────────────────────────────────────────────
 // 🟢 70–100 attractive · 🟡 40–69 moderate risk · 🔴 0–39 high risk
@@ -31,6 +36,73 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   geo: 'Geopolitics',
   sentiment: 'Sentiment',
 };
+
+// ── Big Debt Cycle track ───────────────────────────────────────────────────
+// Each sleeve placed on its current stage (1 sound money … 5 going broke).
+// Sleeves sharing a stage stack vertically within that column.
+export function buildCycleOption(blocks: BlockScore[]): EChartsOption {
+  const cats = CYCLE_STAGES.map((s) => `${s.stage} · ${s.name}`);
+  const byStage = new Map<number, BlockScore[]>();
+  blocks.forEach((b) => {
+    const arr = byStage.get(b.stage) ?? [];
+    arr.push(b);
+    byStage.set(b.stage, arr);
+  });
+  const maxStack = Math.max(1, ...[...byStage.values()].map((a) => a.length));
+  const short = (label: string) => (label === 'Asia-Pac ex-Japan' ? 'Asia-Pac' : label);
+
+  const points = blocks.map((b) => {
+    const group = byStage.get(b.stage)!;
+    // Centre each stage's stack vertically; tight spacing regardless of height.
+    const y = group.indexOf(b) - (group.length - 1) / 2;
+    return {
+      value: [b.stage - 1, y],
+      name: b.label,
+      stageNote: b.stageNote,
+      stageNum: b.stage,
+      itemStyle: { color: stageColor(b.stage) },
+      label: {
+        show: true,
+        position: 'top' as const,
+        distance: 10,
+        formatter: `{name|${short(b.label)}}\n{score|composite ${b.composite}}`,
+        rich: {
+          name: { color: '#e9ecf1', fontSize: 13, fontWeight: 600, lineHeight: 16 },
+          score: { color: '#8a929e', fontSize: 10.5, fontFamily: 'monospace', lineHeight: 13 },
+        },
+      },
+    };
+  });
+
+  return {
+    backgroundColor: 'transparent',
+    grid: { left: 24, right: 24, top: 156, bottom: 56 },
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(15,18,24,.96)',
+      borderColor: 'rgba(255,255,255,.08)',
+      borderWidth: 1,
+      textStyle: { color: '#e9ecf1' },
+      extraCssText: 'max-width:340px;white-space:normal;border-radius:13px',
+      formatter: (p: any) =>
+        `<b>${p.name}</b> · Stage ${p.data.stageNum}<br/>` +
+        `<span style="color:#8a929e">${p.data.stageNote}</span>`,
+    },
+    xAxis: {
+      type: 'category',
+      data: cats,
+      position: 'bottom',
+      axisLabel: { color: '#c7ccd4', fontSize: 12, interval: 0 },
+      splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.06)' } },
+      axisLine: { lineStyle: { color: 'rgba(255,255,255,.12)' } },
+      axisTick: { show: false },
+      boundaryGap: true,
+    },
+    // Symmetric range centres the stacks vertically with comfortable spacing.
+    yAxis: { type: 'value', show: false, min: -maxStack, max: maxStack, inverse: true },
+    series: [{ type: 'scatter', symbolSize: 20, data: points, z: 3 }],
+  };
+}
 
 // ── Map ──────────────────────────────────────────────────────────────────
 // Registers the world geometry under an ECharts map name; copies
