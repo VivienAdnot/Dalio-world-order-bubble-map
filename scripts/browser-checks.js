@@ -64,18 +64,22 @@
     return activeView() === 'radar' || `active tab was "${activeView()}"`;
   });
 
-  // ── Keyboard shortcuts: number keys 1–4 select the four views ─────────────
-  check('pressing "2" selects the Radar view', () => {
+  // ── Keyboard shortcuts: number-row keys 1–4 select the four views ─────────
+  // Must work by physical key position (e.code), not the character produced —
+  // on a French AZERTY layout the top row yields "& é " '" unless Shift is held,
+  // so a layout-agnostic shortcut keys off Digit1–Digit4. These checks simulate
+  // an AZERTY press: physical Digit key, non-digit character, no Shift.
+  check('physical "2" key selects Radar (AZERTY: yields "é", no Shift)', () => {
     $('[data-view="map"]').click(); // start from a known view
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }));
-    return activeView() === 'radar' || `active tab was "${activeView()}" after pressing "2"`;
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit2', key: 'é', bubbles: true }));
+    return activeView() === 'radar' || `active tab was "${activeView()}" after physical "2"`;
   });
 
-  check('pressing "4" selects Profiles and reveals chips', () => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: '4', bubbles: true }));
+  check('physical "4" key selects Profiles and reveals chips (AZERTY: yields "\'")', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit4', key: "'", bubbles: true }));
     const chips = $('#sleeveSel').querySelectorAll('.chip').length;
     return (activeView() === 'profiles' && chips > 0)
-      || `active="${activeView()}" chips=${chips} after pressing "4"`;
+      || `active="${activeView()}" chips=${chips} after physical "4"`;
   });
 
   // Leave the page on the map so screenshots after a run are predictable.

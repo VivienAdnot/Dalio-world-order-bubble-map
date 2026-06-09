@@ -113,11 +113,18 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('resize', () => chart.resize());
 
-// Keyboard shortcuts: number keys 1–4 jump straight to a view (Map/Radar/Bars/Profiles).
-const KEY_TO_VIEW: Record<string, View> = { '1': 'map', '2': 'radar', '3': 'bar', '4': 'profiles' };
+// Keyboard shortcuts: number-row keys 1–4 jump straight to a view (Map/Radar/Bars/Profiles).
+// Keyed off physical position (e.code) so it works on any layout without Shift —
+// e.g. French AZERTY, where the unshifted top row yields "& é " '" rather than digits.
+const CODE_TO_VIEW: Record<string, View> = {
+  Digit1: 'map',
+  Digit2: 'radar',
+  Digit3: 'bar',
+  Digit4: 'profiles',
+};
 window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const v = KEY_TO_VIEW[e.key];
+  const v = CODE_TO_VIEW[e.code];
   if (v) activate(v);
 });
 
